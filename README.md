@@ -15,3 +15,5 @@ Scripts Derives Futures Fire Ignition Potential and categorizes By High, Medium,
 ## GCM_wb_thredds_point_extractor_v3.py
 Script Extracts NPS Water Balance projection data (version 1.5) from the http://www.yellowstone.solutions/thredds Threads Server. Script output is used in the *FireIgnitionRaw_Projections.py* script.
 
+## FireIgnition_SummaryNormals.py
+Script applies the High, Medium and Low Fire Ignition model classification by Land Cover Type to across defiend temporal ranges.  Subsequently processing summarize this classification acorss a defined temporal ranges which is defiend via the *HistoricCurrentProcessingList* table.  Summary periods are usually by normals periods (e.g.  Historic: 1991-2020, Futures 2031-2060, 2061-2090, etc.).
