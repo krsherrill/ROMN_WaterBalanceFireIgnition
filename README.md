@@ -7,6 +7,8 @@ National Park Service Rocky Mountain Network Water Balance Fire Ignition Model S
  
 
 ## FireIgnitionRaw_GridMet_Historic.py
-
 Scripts Derives Fire Ignition Potential and categorizes By High, Medium, and Low Fire Ignition Potential rating pulling from the defined GridMet Station in Climate Analyzer. Fire Ignition Output is from 1991-2020 at a daily time step.
+
+## FireIgnitionRaw_Projections.py
+Scripts Derives Futures Fire Ignition Potential and categorizes By High, Medium, and Low Fire Ignition Potential rating at the defined point location using NPS Water Balance Data future projection Water Balance data as input.  The temporal range to be process is determined by the input projections futures Water Balance data being processed.  The Input projections futures Water Balance data is pulled from the xxxxx Threads Server via script yyyyyy TBD.  
 
