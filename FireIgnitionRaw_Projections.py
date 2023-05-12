@@ -7,8 +7,9 @@
 #Code performs the following routines to derive Fire Ignition Potential:
 #1) Subsets the input table to the desired fields and exports to a Comma delimited text file defining the 'dataset'
 
-#Dependicies:
-# Futures/Projections Water Balance Data is pulled from the NPS Water Balance - threads server via script: xxxx TBD.
+# Dependicies:
+# Futures/Projections Water Balance Data is pulled from the NPS Water Balance Data (version 1.5) on the
+# http://www.yellowstone.solutions/thredds threads server via the  GCM_wb_thredds_point_extractor_v3.py script.
 
 #Python Version 3.9, Numpy. Pandas
 #Created by Kirk Sherrill - Data Manager Rock Mountian Network - I&M National Park Service
