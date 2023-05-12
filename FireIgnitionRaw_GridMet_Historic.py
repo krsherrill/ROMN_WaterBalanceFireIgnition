@@ -13,7 +13,7 @@
 #Version 1.0 20220909
 
 #Dependicies:
-#Python Version 3.9, Pandas, urllib
+#Python Version 3.9, Pandas, urllib, numpy
 
 #Script Name: FireIgnitionRaw_GridMet_Historic.py  - was previously called 'FLFO_FireIgnitionRaw_GridMet_1991_2020v3.py' locally on KRS
 #Created by Kirk Sherrill - Data Manager Rock Mountian Network - I&M National Park Service
