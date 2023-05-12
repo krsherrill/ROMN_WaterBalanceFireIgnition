@@ -17,3 +17,6 @@ Scripts Derives Futures Fire Ignition Potential and categorizes By High, Medium,
 
 ## 4) FireIgnition_SummaryNormals.py
 Script applies the High, Medium and Low Fire Ignition model classification by Fire Ignition Model (Thoma et. al. 2020) Land Cover Type (i.e. Forest and Non-Forest) across defined temporal ranges.  Subsequently processing summarizes this classification across a defined temporal period which is defiend via the *HistoricCurrentProcessingList* table.  Summary periods are usually by normals periods (e.g. Historic: 1991-2020, Futures 2031-2060, 2061-2090, etc.).
+
+## 5) FireIgnitionPotentialNowCastSummarize.py
+Scripts Derives Fire Ignition Potential and categorizes By High, Medium, and Low Fire Ignition Potential for short term/now cast data at the defined GridMet Station in Climate Analyzer.
