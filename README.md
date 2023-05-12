@@ -17,10 +17,11 @@ Script applies the High, Medium and Low Fire Ignition model classification by Fi
 Scripts Derives Fire Ignition Potential and categorizes By High, Medium, and Low Fire Ignition Potential for short term/now cast data at the defined GridMet Station in Climate Analyzer. For a station/location script will be ran daily to pull in the most current daily and nowcast data.
 ## 6) FireIgnition_ScatterPlot_MultipleProjections.py
 Final Script in the Fire Ignition workflow. Creates Scatter Plot Summary Figures by Forest and Non-Forest Fire Ignitions Potential.
-Scatter Plot includes graphing of the current, historical normals (e.g. 1991-2020), Now Cast, and future projections and ensemble means by RCP 4.6 & 8.5. Input Files: 
+Scatter Plot includes graphing of the current, historical normals (e.g. 1991-2020), Now Cast, and future projections and ensemble means by RCP 4.6 & 8.5. For a station/location script will be ran daily to pull in the most current daily and nowcast data. Input Files: 
 
 - Table with Summary of Normals (i.e. Historic Normals, and Projections) by High, Medium, Low number of Days - Output from script: *FireIgnition_SummarizeScriptNormals.py*.
 
-- Table with GridMet Station Now Cast Summary and GridMet Station Singular Year summaries by High, Medium, and Low Ignition potential day - Output from script *FireIgnitionPotentialNowCastSummarize.py* 
+- Table with GridMet Station Now Cast Summary and GridMet Station Singular Year summaries by High, Medium, and Low Ignition potential day - Output from script *FireIgnitionPotentialNowCastSummarize.py*. 
 
-For a station/location script will be ran daily to pull in the most current daily and nowcast data.
+An example Fire Ignition Potential Model output graph for the Forested Landcover model is show below:
+![Example Fire Ignition Potential Model output graph for the Forested Landcover model.](FireDangerHigh_ForestRescaled.jpg)
