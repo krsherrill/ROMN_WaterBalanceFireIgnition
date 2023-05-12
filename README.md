@@ -10,5 +10,8 @@ National Park Service Rocky Mountain Network Water Balance Fire Ignition Model S
 Scripts Derives Fire Ignition Potential and categorizes By High, Medium, and Low Fire Ignition Potential rating pulling from the defined GridMet Station in Climate Analyzer. Fire Ignition Output is from 1991-2020 at a daily time step.
 
 ## FireIgnitionRaw_Projections.py
-Scripts Derives Futures Fire Ignition Potential and categorizes By High, Medium, and Low Fire Ignition Potential rating at the defined point location using NPS Water Balance Data future projection Water Balance data as input.  The temporal range to be process is determined by the input projections futures Water Balance data being processed.  The Input projections futures Water Balance data is pulled from the xxxxx Threads Server via script yyyyyy TBD.  
+Scripts Derives Futures Fire Ignition Potential and categorizes By High, Medium, and Low Fire Ignition Potential rating at the defined point location using NPS Water Balance Data future projection Water Balance data as input.  The temporal range to be process is determined by the input projections futures Water Balance data being processed.  The Input Futures NPS Water Balance data (Version 1.5) is pulled from the http://www.yellowstone.solutions/thredds Threads Server via script *GCM_wb_thredds_point_extractor_v3.py*.  
+
+## GCM_wb_thredds_point_extractor_v3.py
+Script Extracts NPS Water Balance projection data (version 1.5) from the http://www.yellowstone.solutions/thredds Threads Server. Script output is used in the *FireIgnitionRaw_Projections.py* script.
 
