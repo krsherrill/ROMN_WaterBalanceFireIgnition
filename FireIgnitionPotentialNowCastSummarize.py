@@ -61,11 +61,11 @@ logFileName = workspace + "\\" + outName + ".LogFile.txt"
 #logFileName = outName + ".LogFile.txt"
 
 #Fire Year Parameters by Vegtation Type
-nonforest_start_DOY = 74  #Non-Forested Start of Fire Year Day Number
-nonforest_end_DOY = 301   #Non-Forested End of Fire Year Day Number
+nonforest_start_DOY = 79  #Non-Forested Start of Fire Year Day Number
+nonforest_end_DOY = 303   #Non-Forested End of Fire Year Day Number
 forest_start_DOY = 7      #Forest Start of Fire year Day Number
-forest_end_DOY = 303      #Forest End of Fire year Day Number
-movingWindowsDay = 14     #Number of days in the moving window average (default use 14)
+forest_end_DOY = 301      #Forest End of Fire year Day Number
+movingWindowsDay = 7     #Number of days in the moving window average (default use 14)
 #######################################
 ## Below are paths which are hard coded
 #######################################
