@@ -9,9 +9,9 @@
 
 #Input Parameter is Cumulative Water Defict - Water Balance parameter
 
-#Verion Updates:
-#Version 2.0 20220802
-# Changed the number of years to be processed from 4 to 25.
+#Updates:
+# 20220802 - Changed the number of years to be processed from 4 to 25.
+# 20230519 - Updated Fire Ignition Model to Steve Huysman Version 2.0 Southern Rockies first order https://huysman.net/research/fire/southern_rockies.html
 
 #Dependicies:
 #Python Version 3.9, Pandas, urllib
@@ -749,13 +749,15 @@ def define_MovingWindowAverage(inDataSet, movingWindowDays, fieldToAverage):
 #Non-Forest Equation where percentile is the percentile and f is the percent of historic fires (1984-2015) middle rockies
 #that has ignited under the percentile dryness conditions
 def nonforest_equation(percentile):
-    f = 0.047 * np.e**(0.075*percentile)
+    # f = 0.047 * np.e**(0.075*percentile)  #Thoma et. al. 2020 Fire Ignition Model Version 1.0 Southern Rockies Equation.
+    f = 0.0119265 * np.e ** (4.192916 * percentile)  # Steve Huysman 2023 Fire Ignition Model Version 2.0 Fire Order Model for the Southern Rockies.
     return f
 
 #Forest Equation where percentile is the percentile and f is the percent of historic fires (1984-2015) middle rockies
 #that has ignited under the percentile dryness conditions
 def forest_equation(percentile):
-    f = 0.368 * np.e**(0.055*percentile)
+    # f = 0.368 * np.e**(0.055*percentile)  #Thoma et. al. 2020 Fire Ignition Model Version 1.0 Southern Rockies Equation.
+    f = 0.0095308 * np.e ** (4.4556479 * percentile)  # Steve Huysman 2023 Fire Ignition Model Version 2.0 Fire Order Model for the Southern Rockies.
     return f
 
 
