@@ -9,6 +9,7 @@
 
 #Updates:
 #20230519 - Updated Fire Ignition Model to Steve Huysman Version 2.0 Southern Rockies first order https://huysman.net/research/fire/southern_rockies.html
+# Fire Ignition Model vesion 2.0 included used Monitoring Trends Burn Severity data through 2021-12-31 (Note Version FI model 1.0 used MTBS data through 2015.
 
 #Dependicies:
 # Futures/Projections Water Balance Data is pulled from the NPS Water Balance Data (version 1.5) on the

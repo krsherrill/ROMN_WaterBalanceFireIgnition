@@ -12,6 +12,7 @@
 #Updates:
 # 20220802 - Changed the number of years to be processed from 4 to 25.
 # 20230519 - Updated Fire Ignition Model to Steve Huysman Version 2.0 Southern Rockies first order https://huysman.net/research/fire/southern_rockies.html
+# Fire Ignition Model vesion 2.0 included used Monitoring Trends Burn Severity data through 2021-12-31 (Note Version FI model 1.0 used MTBS data through 2015.
 
 #Dependicies:
 #Python Version 3.9, Pandas, urllib
@@ -492,10 +493,6 @@ def summarizeFireDangerRating(inDf, inFileFieldAOA, inAOAWildcard, inFieldPerc, 
         return "Failed function - 'summarizeFireDangerRating'"
 
 
-
-
-
-
 # Append Files in list to .csv file
 def appendFiles(appendList):
     try:
@@ -559,12 +556,23 @@ def fireDangerCategories(coverType):
     try:
 
         if coverType == 'Forest':
-            highFire = 86
-            mediumFire = 65
+            # Thoma et. al. 2020 Fire Ignition Model Version 1.0 Southern Rockies Equation.
+            # highFire = 86
+            # mediumFire = 65
+
+            # Steve Huysman 2023 Fire Ignition Model Version 2.0 Fire Order Model for the Southern Rockies.
+            highFire = 84
+            mediumFire = 53
+
 
         elif coverType == 'Non-Forest':
-            highFire = 90
-            mediumFire = 73
+            # Thoma et. al. 2020 Fire Ignition Model Version 1.0 Southern Rockies Equation.
+            # highFire = 90
+            # mediumFire = 73
+
+            # Steve Huysman 2023 Fire Ignition Model Version 2.0 Fire Order Model for the Southern Rockies.
+            highFire = 84
+            mediumFire = 51
 
         else:
             print("'coverType' variable is not defined as 'Forest' or 'Non-Forest' - existing script Failed")
