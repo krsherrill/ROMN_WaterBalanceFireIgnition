@@ -7,6 +7,9 @@
 
 #Additonally the script will calculate ensemble averages across the General Circulatoin Model, RCP, and defined time frames (e.g. 2031-2060 and 2061-2090).
 
+#Updates
+# 20230519 - Updated Fire Ignition Model to Steve Huysman Version 2.0 Southern Rockies first order https://huysman.net/research/fire/southern_rockies.html
+
 #Dependicies:
 #Python Version 3.x, Pandas, numpy
 
@@ -563,12 +566,22 @@ def fireDangerCategories(coverType):
     try:
 
         if coverType.lower() == 'forest':
-            highFire = 86
-            mediumFire = 65
+            # Thoma et. al. 2020 Fire Ignition Model Version 1.0 Southern Rockies Equation.
+            # highFire = 86
+            # mediumFire = 65
+
+            # Steve Huysman 2023 Fire Ignition Model Version 2.0 Fire Order Model for the Southern Rockies.
+            highFire = 84
+            mediumFire = 53
 
         elif coverType.lower() == 'grassland' or coverType.lower() == 'non-forest':
-            highFire = 90
-            mediumFire = 73
+            # Thoma et. al. 2020 Fire Ignition Model Version 1.0 Southern Rockies Equation.
+            # highFire = 90
+            # mediumFire = 73
+
+            # Steve Huysman 2023 Fire Ignition Model Version 2.0 Fire Order Model for the Southern Rockies.
+            highFire = 84
+            mediumFire = 51
 
         else:
             print("'coverType' variable is not defined as 'Forest' or 'Non-Forest' - existing script Failed")
