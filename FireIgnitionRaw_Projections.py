@@ -36,7 +36,7 @@ from datetime import date
 inFileProjections = r"C:\ROMN\GIS\FLFO\LandscapeAnalysis\WaterBalance\Projections\SingleForestGrassland\MergedAll\FLFO_SingleForestGrassland_WB_Daily_Deficit_AllPRJ_2220_2099v2b_wEnsmbAvgGrassOnly.csv"   #File with Futures Projections data Water Balance Data
 inFileTimeProj = "time"    #Time Field in 'in projection data file
 uniqueInFileProj = "SiteName"   #Field with the unique identifier in projection data file
-movingWindowsDay = 14  #Number of days in the moving window average (default use 14)
+movingWindowsDay = 7  #Number of days in the moving window average (default use 14)
 
 
 #Define the Historic/Current reference parameters:
