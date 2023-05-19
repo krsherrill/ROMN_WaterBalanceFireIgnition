@@ -11,7 +11,7 @@
 
 #Updates:
 #20230519 - Updated Fire Ignition Model to Steve Huysman Version 2.0 Southern Rockies first order https://huysman.net/research/fire/southern_rockies.html.
-# Fire Ignition Model vesion 2.0 included used Monitoring Trends Burn Severity data through 2021-12-31 (Note Version FI model 1.0 used MTBS data through 2015.
+# Fire Ignition Model vesion 2.0 included used Monitoring Trends Burn Severity data from 1984-1-1 through 2021-12-31 (Note Version FI model 1.0 used MTBS data through 2015-12-31.
 
 #Dependicies:
 #Python Version 3.9, Pandas, urllib, numpy
@@ -40,7 +40,7 @@ siteName = 'FLFOGrass_1'  #Site Identifier - should be dynamic - not really nece
 
 #Define the Historic/Current reference parameters:
 refYearStartDate= '1/1/1984'   #Start Year/Date for which Fire Ignition Model was evaluated (Jan 1 of Start Year)
-refYearEndDate = '12/31/2005'       #End Year/Date for which Fire Ignition Model was evaluated (Dec 31 of End Year
+refYearEndDate = '12/31/2021'       #End Year/Date for which Fire Ignition Model was evaluated (Dec 31 of End Year
 
 #Get Current Date
 today = date.today()

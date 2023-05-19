@@ -9,7 +9,7 @@
 
 #Updates:
 #20230519 - Updated Fire Ignition Model to Steve Huysman Version 2.0 Southern Rockies first order https://huysman.net/research/fire/southern_rockies.html
-# Fire Ignition Model vesion 2.0 included used Monitoring Trends Burn Severity data through 2021-12-31 (Note Version FI model 1.0 used MTBS data through 2015.
+# Fire Ignition Model vesion 2.0 included used Monitoring Trends Burn Severity data from 1984-1-1 through 2021-12-31 (Note Version FI model 1.0 used MTBS data through 2015-12-31.
 
 #Dependicies:
 # Futures/Projections Water Balance Data is pulled from the NPS Water Balance Data (version 1.5) on the
@@ -41,7 +41,7 @@ movingWindowsDay = 14  #Number of days in the moving window average (default use
 
 #Define the Historic/Current reference parameters:
 refYearStartDate= '1/1/1984'   #Start Year/Date for which Fire Ignition Model was evaluated (Jan 1 of Start Year)
-refYearEndDate = '12/31/2005'       #End Year/Date for which Fire Ignition Model was evaluated (Dec 31 of End Year
+refYearEndDate = '12/31/2021'       #End Year/Date for which Fire Ignition Model was evaluated (Dec 31 of End Year
 
 ProjectionLoop = ['deficit_CanESM2_rcp45', 'deficit_CanESM2_rcp85', 'deficit_CCSM4_rcp45', 'deficit_CCSM4_rcp85', 'deficit_CNRM-CM5_rcp45', 'deficit_CNRM-CM5_rcp85', 'deficit_CSIRO-Mk3-6-0_rcp45',
                   'deficit_CSIRO-Mk3-6-0_rcp85', 'deficit_GFDL-ESM2G_rcp45', 'deficit_GFDL-ESM2G_rcp85', 'deficit_HadGEM2-CC365_rcp45', 'deficit_HadGEM2-CC365_rcp85', 'deficit_inmcm4_rcp45', 
@@ -311,8 +311,8 @@ def forest_equation(percentile):
     return f
 
 # Input:
-# 1. processDF - Data frame being processed with 14 Day Moving Averages
-# 2. field14Average - Field in 'processDF' with the 14 Day Moving Averages
+# 1. processDF - Data frame being processed with xx Day Moving Averages
+# 2. field14Average - Field in 'processDF' with the xx Day Moving Averages
 # 3. refDF - Reference DataFrame that has been trimmed to the fire year only values
 # 4. refDFField - Field in 'refDF' being checked (e.g. 'inFileField' or 'inFileFieldProj')
 # 5. percentileField - output Percentile field in the 'processDF' (e.g. 'PercentileForest','PercentileNonForest')

@@ -7,12 +7,12 @@
 # By High, Medium, and Low Fire Ignition Potential rating for Forested and Non-Forested models counts number of occurrences (i.e. days) for the previous 25 years (i.e. annual summaries).
 # Additionally the Future Now Cast is summarized (High, Medium, Low) where data is available.
 
-#Input Parameter is Cumulative Water Defict - Water Balance parameter
+# Input Parameter is Cumulative Water Deficit - Water Balance parameter
 
 #Updates:
 # 20220802 - Changed the number of years to be processed from 4 to 25.
 # 20230519 - Updated Fire Ignition Model to Steve Huysman Version 2.0 Southern Rockies first order https://huysman.net/research/fire/southern_rockies.html
-# Fire Ignition Model vesion 2.0 included used Monitoring Trends Burn Severity data through 2021-12-31 (Note Version FI model 1.0 used MTBS data through 2015.
+# Fire Ignition Model vesion 2.0 included used Monitoring Trends Burn Severity data from 1984-1-1 through 2021-12-31 (Note Version FI model 1.0 used MTBS data through 2015-12-31.
 
 #Dependicies:
 #Python Version 3.9, Pandas, urllib
@@ -48,7 +48,7 @@ siteName = 'FLFOGrass_1'  #Site Identifier - should be dynamic - not really nece
 
 #Define the Historic/Current reference parameters:
 refYearStartDate= '1/1/1984'   #Start Year/Date for which Fire Ignition Model was evaluated (Jan 1 of Start Year)
-refYearEndDate = '12/31/2005'       #End Year/Date for which Fire Ignition Model was evaluated (Dec 31 of End Year
+refYearEndDate = '12/31/2021'       #End Year/Date for which Fire Ignition Model was evaluated (Dec 31 of End Year
 
 #Output Directory/LogFile Information
 outputFolder = "C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\\SummarizeFLFO\\" + strDate #Folder for the output Data Package Products
