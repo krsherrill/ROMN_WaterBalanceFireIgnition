@@ -40,6 +40,7 @@ import os
 #Get Current Date
 today = date.today()
 strDate = today.strftime("%Y%m%d") #Date no Dashes
+strDateDash = today.strftime("%Y-%m-%d") #Date with Dashes
 strCurrentDate = str(today)  #Date with Dashes
 ###################################################
 # Start of Parameters requiring set up.
@@ -57,11 +58,13 @@ outNameGrass = 'FireDangerHigh_NonForestRescaled'
 
 logFileName = workspace + "FireIgnitionScatterPlots_" + ".LogFile.txt"
 #Import Dataset Summary of Normals (i.e. Historic Normals, and Projections) - This dataset should be static is output from FireIgnition_SummaryNormals.py
-dfSummaries = pd.read_csv(r'C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\SummarizeFLFO\20230512\FLFO_FireDangerSummary_HistCurrentFutures_Normals20230512.csv')
+dfSummaries = pd.read_csv(outFolder + "\FLFO_FireDangerSummary_HistCurrentFutures_Normals" + strDate + ".csv")
+#dfSummaries = pd.read_csv(r"C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\SummarizeFLFO\20230519\FLFO_FireDangerSummary_HistCurrentFutures_Normals20230519.csv")
 #dfSummaries = pd.read_csv(r'./FLFO_FireDangerSummary_HistCurrentFutures_Normals_20220627_v2.csv')
 
 #Import Dataset with GridMet Station Now Cast summary and GridMet Station Singular year summaries - Output from Dailys Gridmet Station Pulls - script 'FireIgnitionPotentialNowCastSummarize.py
-dfGridMetNowCast = pd.read_csv(r'C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\SummarizeFLFO\20230512\FireIgnitionNowCastwSummary_2023-05-12.csv')  #Gridmet Historic Data - will need to run the 'Gridmet_Historical.py' when a new year is available.
+dfGridMetNowCast = pd.read_csv(outFolder + "\FireIgnitionNowCastwSummary_" + strDateDash + ".csv")
+#dfGridMetNowCast = pd.read_csv(r'C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\SummarizeFLFO\20230519\FireIgnitionNowCastwSummary_2023-05-19.csv')  #Gridmet Historic Data - will need to run the 'Gridmet_Historical.py' when a new year is available.
 #dfGridMetNowCast = pd.read_csv("FireIgnitionNowCastwSummary.csv")  #Gridmet Historic Data - will need to run the 'Gridmet_Historical.py' when a new year is available.
 
 #######################################
