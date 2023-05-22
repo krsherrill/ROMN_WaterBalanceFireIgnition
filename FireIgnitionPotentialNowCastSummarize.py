@@ -50,15 +50,18 @@ siteName = 'FLFOGrass_1'  #Site Identifier - should be dynamic - not really nece
 refYearStartDate= '1/1/1984'   #Start Year/Date for which Fire Ignition Model was evaluated (Jan 1 of Start Year)
 refYearEndDate = '12/31/2021'       #End Year/Date for which Fire Ignition Model was evaluated (Dec 31 of End Year
 
+
+web = 'False'  #'True'|'False' - Parameter defining output to web (i.e. location of script) or defined output directory.
 #Output Directory/LogFile Information
 outputFolder = "C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\\SummarizeFLFO\\" + strDate #Folder for the output Data Package Products
-#outputFolder = "./"  #Folder for the output Data Package Products
 
-#workspace = "C:\\ROMN\\GIS\\FLFO\\LandscapeAnalysis\\FireIgnition\\NowCasts\\" + strDate + "\\workspace"   #workspace
-#workspace = "./"  #workspace
+
 workspace = outputFolder + "\\workspace"
 outName = 'FireIgnitionNowCastwSummary'   #Output .csv filename
 logFileName = workspace + "\\" + outName + ".LogFile.txt"
+
+
+
 #logFileName = outName + ".LogFile.txt"
 
 #Fire Year Parameters by Vegtation Type
@@ -90,6 +93,12 @@ if os.path.exists(logFileName):
 else:
     logFile = open(logFileName, "w")  # Creating index file if it doesn't exist
     logFile.close()
+
+#Output same directory as script or hard codes outputFolder
+if web == True:
+    outputFolder = './'
+else: #Output to hard coded output
+    outputFolder = outputFolder
 
 
 
@@ -284,7 +293,10 @@ def main():
         # Export output final dataframe
         currentDate = datetime.date.today()
         strCurrentDate = str(currentDate)
-        outFull = outputFolder + "\\" + outName + "_" + strCurrentDate + ".csv"
+        if web = "False":
+            outFull = outputFolder + "\\" + outName + "_" + strCurrentDate + ".csv"
+        else:
+            outFull = outputFolder + "\\" + outName +".csv"
         #outFull = outName + ".csv"
 
         # Export
