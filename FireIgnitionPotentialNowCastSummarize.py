@@ -294,7 +294,7 @@ def main():
         currentDate = datetime.date.today()
         strCurrentDate = str(currentDate)
 
-        if web = "False":
+        if web == "False":
             outFull = outputFolder + "\\" + outName + "_" + strCurrentDate + ".csv"
         else:
             outFull = outputFolder + "\\" + outName +".csv"
