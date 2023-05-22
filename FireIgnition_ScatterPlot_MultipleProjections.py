@@ -46,24 +46,37 @@ strCurrentDate = str(today)  #Date with Dashes
 # Start of Parameters requiring set up.
 ###################################################
 #Output Folder
-outFolder = "C:\\ROMN\\GIS\\FLFO\\LandscapeAnalysis\\FireIgnition\\Python\\SummarizeFLFO\\" + strDate
-#outFolder = ""
 
-#Workspace
-workspace = "C:\\ROMN\\GIS\\FLFO\\LandscapeAnalysis\\FireIgnition\\Python\\SummarizeFLFO\\" + strDate + "\\workspace"   #workspace
+web = 'True'  #'True'|'False' - Parameter defining output to web (i.e. location of script) or defined output directory.
+if web == 'False':
+    outFolder = "C:\\ROMN\\GIS\\FLFO\\LandscapeAnalysis\\FireIgnition\\Python\\SummarizeFLFO\\" + strDate  #Folder for the output Data Package Products - if Web = 'True' will be ignored
+    #Workspace
+    workspace = "C:\\ROMN\\GIS\\FLFO\\LandscapeAnalysis\\FireIgnition\\Python\\SummarizeFLFO\\" + strDate + "\\workspace"   #workspace
+else:
+    output_folder = './'
+    workspace = './'
+
 #workspace = ""
 #Output Names to Scatter Plots
 outNameForest = 'FireDangerHigh_ForestRescaled'
 outNameGrass = 'FireDangerHigh_NonForestRescaled'
 
 logFileName = workspace + "FireIgnitionScatterPlots_" + ".LogFile.txt"
-#Import Dataset Summary of Normals (i.e. Historic Normals, and Projections) - This dataset should be static is output from FireIgnition_SummaryNormals.py
-dfSummaries = pd.read_csv(outFolder + "\FLFO_FireDangerSummary_HistCurrentFutures_Normals" + strDate + ".csv")
-#dfSummaries = pd.read_csv(r"C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\SummarizeFLFO\20230519\FLFO_FireDangerSummary_HistCurrentFutures_Normals20230519.csv")
-#dfSummaries = pd.read_csv(r'./FLFO_FireDangerSummary_HistCurrentFutures_Normals_20220627_v2.csv')
 
-#Import Dataset with GridMet Station Now Cast summary and GridMet Station Singular year summaries - Output from Dailys Gridmet Station Pulls - script 'FireIgnitionPotentialNowCastSummarize.py
-dfGridMetNowCast = pd.read_csv(outFolder + "\FireIgnitionNowCastwSummary_" + strDateDash + ".csv")
+
+if web == 'False':
+    #Import Dataset Summary of Normals (i.e. Historic Normals, and Projections) - This dataset should be static is output from FireIgnition_SummaryNormals.py
+    dfSummaries = pd.read_csv(outFolder + "\FLFO_FireDangerSummary_HistCurrentFutures_Normals" + strDate + ".csv")
+    # Import Dataset with GridMet Station Now Cast summary and GridMet Station Singular year summaries - Output from Dailys Gridmet Station Pulls - script 'FireIgnitionPotentialNowCastSummarize.py
+    dfGridMetNowCast = pd.read_csv(outFolder + "\FireIgnitionNowCastwSummary_" + strDateDash + ".csv")
+else:
+    # Import Dataset Summary of Normals (i.e. Historic Normals, and Projections) - This dataset should be static is output from FireIgnition_SummaryNormals.py
+    dfSummaries = pd.read_csv(outFolder + "\FLFO_FireDangerSummary_HistCurrentFutures_Normals.csv")
+    # Import Dataset with GridMet Station Now Cast summary and GridMet Station Singular year summaries - Output from Dailys Gridmet Station Pulls - script 'FireIgnitionPotentialNowCastSummarize.py
+    dfGridMetNowCast = pd.read_csv(outFolder + "\FireIgnitionNowCastwSummary.csv")
+
+
+
 #dfGridMetNowCast = pd.read_csv(r'C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\SummarizeFLFO\20230519\FireIgnitionNowCastwSummary_2023-05-19.csv')  #Gridmet Historic Data - will need to run the 'Gridmet_Historical.py' when a new year is available.
 #dfGridMetNowCast = pd.read_csv("FireIgnitionNowCastwSummary.csv")  #Gridmet Historic Data - will need to run the 'Gridmet_Historical.py' when a new year is available.
 
