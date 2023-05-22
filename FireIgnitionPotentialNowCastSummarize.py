@@ -53,7 +53,7 @@ refYearEndDate = '12/31/2021'       #End Year/Date for which Fire Ignition Model
 
 web = 'False'  #'True'|'False' - Parameter defining output to web (i.e. location of script) or defined output directory.
 #Output Directory/LogFile Information
-outputFolder = "C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\\SummarizeFLFO\\" + strDate #Folder for the output Data Package Products
+outputFolder = "C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\\SummarizeFLFO\\" + strDate #Folder for the output Data Package Products - if Web = 'True' will be ignored
 
 
 workspace = outputFolder + "\\workspace"
@@ -293,6 +293,7 @@ def main():
         # Export output final dataframe
         currentDate = datetime.date.today()
         strCurrentDate = str(currentDate)
+
         if web = "False":
             outFull = outputFolder + "\\" + outName + "_" + strCurrentDate + ".csv"
         else:
