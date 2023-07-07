@@ -13,11 +13,13 @@
 #20230519 - Updated Fire Ignition Model to Steve Huysman Version 2.0 Southern Rockies first order https://huysman.net/research/fire/southern_rockies.html.
 # Fire Ignition Model vesion 2.0 included used Monitoring Trends Burn Severity data from 1984-1-1 through 2021-12-31 (Note Version FI model 1.0 used MTBS data through 2015-12-31.
 
+#20230707 - Updated script to dynamically process Gridmet Stations on Climate Analyzer via the Gridmet station name as defined in the 'siteName' variable.  Script is no longer hard coded for FLFO
+
 #Dependicies:
 #Python Version 3.9, Pandas, urllib, numpy
 
 #Script Name: FireIgnitionRaw_GridMet_Historic.py  - was previously called 'FLFO_FireIgnitionRaw_GridMet_1991_2020v3.py' locally on KRS
-#Created by Kirk Sherrill - Data Manager Rock Mountian Network - I&M National Park Service
+#Created by Kirk Sherrill - Data Manager Rocky Mountain Network - I&M National Park Service
 
 
 ##Import Libraries
@@ -32,11 +34,13 @@ from datetime import date
 # Start of Parameters requiring set up.
 ###################################################
 
-#Define URL with the Gridmet data in Climate Analyzer
-serviceURL = "http://www.climateanalyzer.science/python/wb2.py?csv_output=true&station=flfograss1_from_grid&title=FLFOGRID&pet_type=hamon&max_soil_water=250&graph_table=table&table_type=daily&forgiving=very&year1=1980&year2=2022&station_type=GHCN&sim_snow=true&force=true?"
-
 inFieldFieldNowCast = 'D (MM)'  #Field in the Now Cast data being used in the fire iginition pototential model (this will be the deficit field).
-siteName = 'FLFOGrass_1'  #Site Identifier - should be dynamic - not really necessary
+
+siteName = 'eastinlet_from_grid'  #Gridmet Station Name
+
+#Define URL with the Gridmet data in Climate Analyzer
+siteNameNoFromGrid = siteName.replace("_from_grid","")   #SiteName with the 'from_grid' removed
+serviceURL = "http://www.climateanalyzer.science/python/wb2.py?csv_output=true&station=" + siteName + "&title=" + siteNameNoFromGrid + "&pet_type=hamon&max_soil_water=250&graph_table=table&table_type=daily&forgiving=very&year1=1980&year2=2022&station_type=GHCN&sim_snow=true&force=true?"
 
 #Define the Historic/Current reference parameters:
 refYearStartDate= '1/1/1984'   #Start Year/Date for which Fire Ignition Model was evaluated (Jan 1 of Start Year)
@@ -47,11 +51,11 @@ today = date.today()
 strDate = today.strftime("%Y%m%d")
 
 #Output Directory/LogFile Information
-outputFolder = "C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\SummarizeFLFO\\" + strDate #Folder for the output Data Package Products
+outputFolder = r"C:\ROMN\Climate\ClimateAnalyzer\Dashboards\ROMO\GridMetStations\\" + siteName + "\\" + strDate #Folder for the output Data Package Products
 #outputFolder = "./"  #Folder for the output Data Package Products
 workspace = outputFolder + "\\workspace"   #workspace
 #workspace = "./"  #workspace
-outName = 'FLFO_Gridmet_FireIgnitionRating_1991_2020'   #Output .csv filename
+outName = siteName + "_FireIgnitionRating_1991_2020"   #Output .csv filename
 logFileName = workspace + "\\" + outName + ".LogFile.txt"
 #logFileName = outName + ".LogFile.txt"
 
@@ -60,7 +64,7 @@ nonforest_start_DOY = 79  #Non-Forested Start of Fire Year Day Number
 nonforest_end_DOY = 303   #Non-Forested End of Fire Year Day Number
 forest_start_DOY = 7      #Forest Start of Fire year Day Number
 forest_end_DOY = 301      #Forest End of Fire year Day Number
-movingWindowsDay = 7     #Number of days in the moving window average (default use 14)
+movingWindowsDay = 14     #Number of days in the moving window average (default use 14)
 #######################################
 ## Below are paths which are hard coded
 #######################################
@@ -218,7 +222,6 @@ def main():
         # Export
         dfallFiles.to_csv(outFull, index=False)
 
-
         scriptMsg = "Successfully processed Normal 1991-2020 - Fire Igintion Potential: " + outFull + " - " + messageTime
         print(scriptMsg)
         logFile = open(logFileName, "a")
@@ -374,7 +377,8 @@ def appendFiles(appendList):
             # Append dfLoop to dfallFiles
             else:
 
-                dfallFiles = dfallFiles.append(dfLoop, ignore_index=True, verify_integrity=True)
+                #dfallFiles = dfallFiles.append(dfLoop, ignore_index=True, verify_integrity=True)
+                dfallFiles = dfallFiles._append(dfLoop, ignore_index=True, verify_integrity=True)
 
             del dfLoop
 
