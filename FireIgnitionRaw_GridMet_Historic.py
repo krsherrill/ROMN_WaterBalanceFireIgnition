@@ -50,21 +50,24 @@ refYearEndDate = '12/31/2021'       #End Year/Date for which Fire Ignition Model
 today = date.today()
 strDate = today.strftime("%Y%m%d")
 
-#Output Directory/LogFile Information
-outputFolder = r"C:\ROMN\Climate\ClimateAnalyzer\Dashboards\ROMO\GridMetStations\\" + siteName + "\\" + strDate #Folder for the output Data Package Products
-#outputFolder = "./"  #Folder for the output Data Package Products
-workspace = outputFolder + "\\workspace"   #workspace
-#workspace = "./"  #workspace
-outName = siteName + "_FireIgnitionRating_1991_2020"   #Output .csv filename
-logFileName = workspace + "\\" + outName + ".LogFile.txt"
-#logFileName = outName + ".LogFile.txt"
-
 #Fire Year Parameters by Vegtation Type
 nonforest_start_DOY = 79  #Non-Forested Start of Fire Year Day Number
 nonforest_end_DOY = 303   #Non-Forested End of Fire Year Day Number
 forest_start_DOY = 7      #Forest Start of Fire year Day Number
 forest_end_DOY = 301      #Forest End of Fire year Day Number
 movingWindowsDay = 14     #Number of days in the moving window average (default use 14)
+
+#Output Directory/LogFile Information
+outputFolder = r"C:\ROMN\Climate\ClimateAnalyzer\Dashboards\ROMO\GridMetStations\\" + siteName + "\\" + strDate #Folder for the output Data Package Products
+#outputFolder = "./"  #Folder for the output Data Package Products
+workspace = outputFolder + "\\workspace"   #workspace
+#workspace = "./"  #workspace
+outName = siteName + "_FireIgnitionRating_1991_2020_WinDays" + str(movingWindowsDay)   #Output .csv filename
+logFileName = workspace + "\\" + outName + ".LogFile.txt"
+#logFileName = outName + ".LogFile.txt"
+
+
+
 #######################################
 ## Below are paths which are hard coded
 #######################################
