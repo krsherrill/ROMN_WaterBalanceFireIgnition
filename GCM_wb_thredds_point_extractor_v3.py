@@ -253,6 +253,44 @@ def mergeMonthly_sites(parameterList, paraModelScenarioList):
         outfile.close()
 
 
+#calculate the ensemble mean for the defined RCP in variable 'calEnsembleAvg'
+def define_EnsembleMean(dfIn, parameterList, calEnsembleAvg):
+    try:
+        #Calculate ensemble averages per parameter
+        for parameter in parameterList:
+            #Calculate ensembles per RCP
+            for rcp in calEnsembleAvg:
+                # Empty List of Fields to Process
+                fieldList = []
+                # loop thru fields in dataframe - define fields to average
+                for col in dfIn.columns:
+                    #Check for RCP in field name
+                    if rcp in col:
+                        #Check for Parameter in field name
+                        if parameter in col:
+                            # Append field if matches
+                            fieldList.append(col)
+                            print(col)
+
+                #If fieldList len = 0 skip
+                if len(fieldList) == 0:
+                    continue
+
+                # Define Output Name
+                outField = parameter + "_Ensemble_" + rcp
+
+                #Calculate the Ensemble Mean - to new field
+                dfIn[outField] = dfIn[fieldList].mean(axis=1)
+
+        return "Success function", dfIn
+
+    except:
+        messageTime = timeFun()
+        print("Error on define_EnsembleMean Function ")
+        traceback.print_exc(file=sys.stdout)
+        return "Failed function - 'define_EnsembleMean'"
+
+
 #Function Merges all the Merged parameter files (across all sites and years) in the 'MergedParameter' directory to
 #one file 'MergedAll.csv' in directory 'MergedAll'. Variables that are processed are defined in the 'parameterList' variable
 def mergeFinalparameterList(paraModelScenarioList, outFileName):
@@ -309,6 +347,18 @@ def mergeFinalparameterList(paraModelScenarioList, outFileName):
         parameterCount += 1
 
 
+    #Calculate the Ensemble Mean per parameter
+    outVal = define_EnsembleMean(mergeCurrent, parameterList, calEnsembleAvg)
+    if outVal[0] != "Success function":
+        print("WARNING - Function define_EnsembleMean failed - Exiting Script")
+        exit()
+    else:
+        print("Success - Function define_EnsembleMean")
+        #Pass Dataframe
+        mergeCurrent = outVal[1]
+
+
+
     mergeCurrent.to_csv(filepathFinalMerged + "\\" + outFileName + ".csv", ",", index = False)
     del df
     del mergeCurrent
@@ -320,7 +370,6 @@ def timeFun():          #Function to Grab Time
     b=datetime.now()
     messageTime = b.isoformat()
     return messageTime
-
 
 
 def unit_fix(line):
@@ -349,15 +398,19 @@ if __name__ == '__main__':
     import os, shutil
 
     parameterList = ['soil_water', 'runoff', 'agdd', 'pet', 'deficit', 'rain', 'accumswe', 'aet']  #List of Parameters to be processed
-    #parameterList = ['rain', 'deficit']
+    #parameterList = ['deficit']
 
     first_year = 2020
     last_year = 2099
-    siteNameUnderscore = "Yes"  # Variable defines if the site name has an underscore (e.g FLFO_001) ('Yes'|'No'), used to define the 'Site' field from the file name
-    mypointsFile = r'C:\ROMN\GIS\FLFO\LandscapeAnalysis\WaterBalance\Projections\FLFO_WW_HD\my_gcm_points_DeficitRainOnly_WW_HD.csv'  # path and File Name used to define the points to be processed - in the same format as 'mypoints.csv'
-    outFileName = "FLFO_WarmWet_HotDry_rain_deficit"  # Output File name for the .csv file with all Sites, Parameters and Years merged into one file
 
-    deleteDirectories = "No"  # If set to yes the 'SiteMonthlyDailyFiles','MergeYearFiles', and 'MergeParameter' directories will be deleted at the start of processing- To avoid processing previous data.
+
+    calEnsembleAvg = ['rcp45','rcp85']    #Ensemble Average to derive ('No'|'rcp45'|'rcp85') respectively for No Ensemble, 4.5 and 8.5 emissions scenarios.
+    siteNameUnderscore = "Yes"  # Variable defines if the site name has an underscore (e.g FLFO_001) ('Yes'|'No'), used to define the 'Site' field from the file name
+    mypointsFile = r'C:\ROMN\Climate\ClimateAnalyzer\Dashboards\ROMO\GridMetStations\bearlake_from_grid\my_gcm_points_DeficitOnly_bearlake_from_grid_Test.csv'  # path and File Name used to define the points to be processed - in the same format as 'mypoints.csv'
+    outFileName = "bearlake_fromgrid_futures"  # Output File name for the .csv file with all Sites, Parameters and Years merged into one file
+
+    deleteDirectories = "Yes"  # If set to yes the 'SiteMonthlyDailyFiles','MergeYearFiles', and 'MergeParameter' directories will be deleted at the start of processing- To avoid processing previous data.
+
 
     ######################
     # Hard Coded Below
@@ -370,7 +423,7 @@ if __name__ == '__main__':
     # KRS Added 20210319
     model_scenario_List = []  # As model and scenario list are processed this list will be populated
     filepath = os.path.dirname(os.path.abspath(__file__))
-    # Delete Existing Directories that might have files from preivous processing.
+    # Delete Existing Directories that might have files from previous processing.
     if deleteDirectories.lower() == "yes":
 
         dirList = ["SiteMonthlyDailyFiles", "MergeYearFiles", "MergedParameter"]
@@ -379,6 +432,7 @@ if __name__ == '__main__':
             if os.path.exists(fullPath):
                 shutil.rmtree(filepath + "\\" + directory)
                 print("Deleted directory -" + filepath + "\\" + directory)
+
     #############
 
     paraModelScenarioList = []  #List to hold all Parameter, Model, Rcp scenario's used in the 'mergeMonthly_sites' function
