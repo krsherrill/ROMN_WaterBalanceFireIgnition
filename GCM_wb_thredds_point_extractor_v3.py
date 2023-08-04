@@ -401,8 +401,8 @@ if __name__ == '__main__':
     #parameterList = ['deficit']
 
     first_year = 2020
-    #last_year = 2099
-    last_year = 2021
+    last_year = 2099
+
 
     calEnsembleAvg = ['rcp45','rcp85']    #Ensemble Average to derive ('No'|'rcp45'|'rcp85') respectively for No Ensemble, 4.5 and 8.5 emissions scenarios.
     siteNameUnderscore = "Yes"  # Variable defines if the site name has an underscore (e.g FLFO_001) ('Yes'|'No'), used to define the 'Site' field from the file name
