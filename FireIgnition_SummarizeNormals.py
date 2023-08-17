@@ -5,11 +5,13 @@
 #field to be summarized (i.e. respective percentiles outputs (e.g. by GCP, Forest, Non-Forest, etc.), start and end Years,
 #Currently defined to run a 'Mean' normal across the defined years.
 
-#Additonally the script will calculate ensemble averages across the General Circulatoin Model, RCP, and defined time frames (e.g. 2031-2060 and 2061-2090).
+#Additonally the script will calculate ensemble averages from the derived Normals (i.e. Ensembles_from_Normals) across the General Circulatoin Model, RCP, and defined time frames (e.g. 2031-2060 and 2061-2090).
 
 #Updates
 # 20230519 - Updated Fire Ignition Model to Steve Huysman Version 2.0 Southern Rockies first order https://huysman.net/research/fire/southern_rockies.html
-
+# 20230814 - Add out denoting ensemble average calculation output is coming from average of derived normals for High, Med, Low, fields - defined as 'Ensemble_from_Normals'
+# Changed from function in Pandas from Dataframe append (deprecated) to concat (current).  Adding logic to not add 'DateTime' field if already exists.  Removed coded areas for Ensemble calculation for Forested
+# and non-forest calculation - only deriving ensembles (from normals) for one cover type as defined via the 'CoverTypeLU' variable.
 #Dependicies:
 #Python Version 3.x, Pandas, numpy
 
@@ -34,14 +36,17 @@ strDate = today.strftime("%Y%m%d")
 # Start of Parameters requiring set up.
 ###################################################
 #Excel file defining the Fire Ignition records to be processed
-inProcessFile = r'C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\SummarizeFLFO\20220922\HistoricCurrentProcessingList_20220922.xlsx'
+inProcessFile = r'C:\ROMN\Climate\ClimateAnalyzer\Dashboards\ROMO\GridMetStations\bearlake_from_grid\HistoricCurrentProcessingList_bearlake.xlsx'
 #Output Directory/LogFile Information
-outDirectory = "C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\SummarizeFLFO\\" + strDate #Folder for the output Data Package Products
+outDirectory = "C:\ROMN\Climate\ClimateAnalyzer\Dashboards\ROMO\GridMetStations\\bearlake_from_grid\\" + strDate #Folder for the output Data Package Products
+
 
 workspace = outDirectory + "\\workspace"   #workspace
-outFileName = 'FLFO_FireDangerSummary_HistCurrentFutures_Normals' + strDate   #Output .csv filename
+outFileName = 'bear_lake_FireDangerSummary_HistCurrentFutures_Normals' + strDate   #Output .csv filename
 logFileName = workspace + "\\" + outFileName + ".LogFile.txt"
 
+siteNameLU = 'bearlake_from_grid'   #Variable used for Ensemble Calculation in the Ensembe from normals calculation
+CoverTypeLU = 'Forest'  #Variable used to define the cover type to be derived in the Ensemble from normals calculation
 #######################################
 ## Below are paths which are hard coded
 #######################################
@@ -120,7 +125,7 @@ def main():
         outFun = appendFiles(appendDfList)
         if outFun[0] != "Success function":
             print("WARNING - Function summarizeFireDangerRating failed - Exiting Script")
-
+            sys.exit()
         else:
             #Push non-ensemble output to a data frame
             dfallFiles = outFun[1]
@@ -132,7 +137,7 @@ def main():
             logFile.write(scriptMsg + "\n")
 
         ################################################################
-        # Calculate the Ensemble Averages for All RCP 4.5 and RCP 8.5 GCM
+        # Calculate the Ensemble Averages for All RCP 4.5 and RCP 8.5 GCM Mid and Late Century
         #Define second append list
         appendDfList2 = []
         #Add Non-ensemble DF to append list
@@ -140,29 +145,7 @@ def main():
 
         df = dfallFiles
 
-        # Calculate Forest RCP 45 2031-2060
-        siteNameLU = 'FLFOForest_1'
-        CoverTypeLU = 'Forest'
-        RCPLU = 'rcp45'
-        DateTimeLU = '2031_2060'
-        dfSubset = df[(df["CoverType"] == CoverTypeLU) & (df["RCP"] == RCPLU) & (df["DateTime"] == DateTimeLU)]
-
-
-        outFun = calculateEnsembleAvg(dfSubset, siteNameLU, CoverTypeLU, RCPLU, DateTimeLU)
-        if outFun[0] != "Success Function":
-            print("WARNING - Function calculateEnsembleAvg failed - Exiting Script")
-            sys.exit()
-        else:
-
-            messageTime = timeFun()
-            scriptMsg = "Success Function: calculateEnsembleAvg - " + siteNameLU + " - " + CoverTypeLU + " - " + RCPLU + " - " + DateTimeLU + " - " + messageTime
-            print(scriptMsg)
-            appendDfList2.append(outFun[1])
-
-
-        # Calculate Non-Forest RCP 45 2031-2060
-        siteNameLU = 'FLFOGrass_1'
-        CoverTypeLU = 'Non-Forest'
+        # Calculate By Site and Cover Type RCP 45 2031-2060
         RCPLU = 'rcp45'
         DateTimeLU = '2031_2060'
         dfSubset = df[(df["CoverType"] == CoverTypeLU) & (df["RCP"] == RCPLU) & (df["DateTime"] == DateTimeLU)]
@@ -178,9 +161,7 @@ def main():
             print(scriptMsg)
             appendDfList2.append(outFun[1])
 
-        # Calculate Forest RCP 85 2031-2060
-        siteNameLU = 'FLFOForest_1'
-        CoverTypeLU = 'Forest'
+       #Calculate By Site and Cover Type RCP 85 2031-2060
         RCPLU = 'rcp85'
         DateTimeLU = '2031_2060'
         dfSubset = df[(df["CoverType"] == CoverTypeLU) & (df["RCP"] == RCPLU) & (df["DateTime"] == DateTimeLU)]
@@ -195,26 +176,8 @@ def main():
             print(scriptMsg)
             appendDfList2.append(outFun[1])
 
-        # Calculate Non-Forest RCP 85 2031-2060
-        siteNameLU = 'FLFOGrass_1'
-        CoverTypeLU = 'Non-Forest'
-        RCPLU = 'rcp85'
-        DateTimeLU = '2031_2060'
-        dfSubset = df[(df["CoverType"] == CoverTypeLU) & (df["RCP"] == RCPLU) & (df["DateTime"] == DateTimeLU)]
 
-        outFun = calculateEnsembleAvg(dfSubset, siteNameLU, CoverTypeLU, RCPLU, DateTimeLU)
-        if outFun[0] != "Success Function":
-            print("WARNING - Function calculateEnsembleAvg failed - Exiting Script")
-            sys.exit()
-        else:
-            messageTime = timeFun()
-            scriptMsg = "Success Function: calculateEnsembleAvg - " + siteNameLU + " - " + CoverTypeLU + " - " + RCPLU + " - " + DateTimeLU + " - " + messageTime
-            print(scriptMsg)
-            appendDfList2.append(outFun[1])
-
-        # Calculate Forest RCP 45 2061-2090
-        siteNameLU = 'FLFOForest_1'
-        CoverTypeLU = 'Forest'
+        # Calculate By Site and Cover Type RCP 45 2061-2090
         RCPLU = 'rcp45'
         DateTimeLU = '2061_2090'
         dfSubset = df[(df["CoverType"] == CoverTypeLU) & (df["RCP"] == RCPLU) & (df["DateTime"] == DateTimeLU)]
@@ -229,27 +192,8 @@ def main():
             print(scriptMsg)
             appendDfList2.append(outFun[1])
 
-        # Calculate Non-Forest RCP 45 2061-2090
-        siteNameLU = 'FLFOGrass_1'
-        CoverTypeLU = 'Non-Forest'
-        RCPLU = 'rcp45'
-        DateTimeLU = '2061_2090'
-        dfSubset = df[(df["CoverType"] == CoverTypeLU) & (df["RCP"] == RCPLU) & (df["DateTime"] == DateTimeLU)]
 
-        outFun = calculateEnsembleAvg(dfSubset, siteNameLU, CoverTypeLU, RCPLU, DateTimeLU)
-        if outFun[0] != "Success Function":
-            print("WARNING - Function calculateEnsembleAvg failed - Exiting Script")
-            sys.exit()
-        else:
-
-            messageTime = timeFun()
-            scriptMsg = "Success Function: calculateEnsembleAvg - " + siteNameLU + " - " + CoverTypeLU + " - " + RCPLU + " - " + DateTimeLU + " - " + messageTime
-            print(scriptMsg)
-            appendDfList2.append(outFun[1])
-
-        # Calculate Forest RCP 85 2061_2090
-        siteNameLU = 'FLFOForest_1'
-        CoverTypeLU = 'Forest'
+        #Calculate By Site and Cover Type RCP 85 2061_2090
         RCPLU = 'rcp85'
         DateTimeLU = '2061_2090'
         dfSubset = df[(df["CoverType"] == CoverTypeLU) & (df["RCP"] == RCPLU) & (df["DateTime"] == DateTimeLU)]
@@ -264,22 +208,7 @@ def main():
             print(scriptMsg)
             appendDfList2.append(outFun[1])
 
-        # Calculate Non-Forest RCP 85 2061_2090
-        siteNameLU = 'FLFOGrass_1'
-        CoverTypeLU = 'Non-Forest'
-        RCPLU = 'rcp85'
-        DateTimeLU = '2061_2090'
-        dfSubset = df[(df["CoverType"] == CoverTypeLU) & (df["RCP"] == RCPLU) & (df["DateTime"] == DateTimeLU)]
 
-        outFun = calculateEnsembleAvg(dfSubset, siteNameLU, CoverTypeLU, RCPLU, DateTimeLU)
-        if outFun[0] != "Success Function":
-            print("WARNING - Function calculateEnsembleAvg failed - Exiting Script")
-            sys.exit()
-        else:
-            messageTime = timeFun()
-            scriptMsg = "Success Function: calculateEnsembleAvg - " + siteNameLU + " - " + CoverTypeLU + " - " + RCPLU + " - " + DateTimeLU + " - " + messageTime
-            print(scriptMsg)
-            appendDfList2.append(outFun[1])
 
         ################################
         # Append all processed Time Steps
@@ -345,7 +274,7 @@ def calculateEnsembleAvg(dfSubset, siteNameLU, CoverTypeLU, RCPLU, DateTimeLU):
         dfEnsemble.at[0, 'SiteName'] = siteNameLU
         dfEnsemble.at[0, 'CoverType'] = CoverTypeLU
         dfEnsemble.at[0, 'DateTime'] = DateTimeLU
-        dfEnsemble.at[0, 'GCM'] = 'Ensemble'
+        dfEnsemble.at[0, 'GCM'] = 'Ensemble_from_Normals'
         dfEnsemble.at[0, 'RCP'] = RCPLU
 
 
@@ -537,8 +466,11 @@ def summarizeFireDangerRating(inFile, inFileFieldAOA, inAOAWildcard, inFieldPerc
             #outDataTimeDef = statistic + "_" + timeStep + "_" + str(startYear) + "_" + str(endYear)
             outDataTimeDef = str(startYear) + "_" + str(endYear)
 
-            #Add the DateTime Field
-            dfNormals.insert(loc=0, column='DateTime', value=outDataTimeDef)
+            if 'DateTime' in dfNormals.columns:  #Added 8/23/203 KRS
+                dfNormals['DateTime']= outDataTimeDef
+
+            else:#Add the DateTime Field
+                dfNormals.insert(loc=0, column='DateTime', value=outDataTimeDef)
 
             # Add Cover Type
             dfNormals.insert(loc=0, column='CoverType', value=coverType)
@@ -610,7 +542,8 @@ def appendFiles(appendList):
             # Append dfLoop to dfallFiles
             else:
 
-                dfallFiles = dfallFiles.append(dfLoop, ignore_index=True, verify_integrity=True)
+                #dfallFiles = dfallFiles.append(dfLoop, ignore_index=True, verify_integrity=True)  #Append is depricated
+                dfallFiles = pd.concat([dfallFiles,dfLoop], axis=0, ignore_index=True, verify_integrity=True)
 
             del dfLoop
 
