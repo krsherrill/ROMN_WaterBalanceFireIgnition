@@ -56,7 +56,7 @@ refYearEndDate = '12/31/2021'       #End Year/Date for which Fire Ignition Model
 
 web = 'False'  #'True'|'False' - Parameter defining output to web (i.e. location of script) or defined output directory.
 #Output Directory/LogFile Information
-outputFolder = "C:\ROMN\Climate\ClimateAnalyzer\Dashboards\ROMO\GridMetStations\\bearlake_from_grid\\" + strDate #Folder for the output Data Package Products - if Web = 'True' will be ignored
+outputFolder = "C:\ROMN\Climate\ClimateAnalyzer\Dashboards\ROMO\GridMetStations\\" + siteName + "\\" + strDate #Folder for the output Data Package Products - if Web = 'True' will be ignored
 
 workspace = outputFolder + "\\workspace"
 outName = 'FireIgnitionNowCastwSummary'   #Output .csv filename
@@ -297,8 +297,8 @@ def main():
         if web == "False":
             outFull = outputFolder + "\\" + outName + "_" + strCurrentDate + ".csv"
         else:
-            outFull = outputFolder + "\\" + outName +".csv"
-        #outFull = outName + ".csv"
+            fileDir = os.path.dirname(__file__)
+            outFull = fileDir + "\\" + outName + ".csv"
 
         # Export
         dfallFiles.to_csv(outFull, index=False)
