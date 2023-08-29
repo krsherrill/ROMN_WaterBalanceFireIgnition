@@ -1,7 +1,7 @@
 
 # ---------------------------------------------------------------------------
 # FireIgnitionPotentialNowCastSummarize.py
-# Script Derive Fire Iginition Potential for short term/now cast data being pulled from a Gridmet station on Climate Analyzer.
+# Script Derive Fire Ignition Potential for short term/now cast data being pulled from a Gridmet station on Climate Analyzer.
 # Fire Ignition Potential is being derived using a water balance output parameter - water deficit variable .
 # Applies the Fire Ignition Potential model as defined in Thoma et. al. 2020 Management Applications Paper
 # By High, Medium, and Low Fire Ignition Potential rating for Forested and Non-Forested models counts number of occurrences (i.e. days) for the previous 25 years (i.e. annual summaries).
@@ -12,13 +12,13 @@
 #Updates:
 # 20220802 - Changed the number of years to be processed from 4 to 25.
 # 20230519 - Updated Fire Ignition Model to Steve Huysman Version 2.0 Southern Rockies first order https://huysman.net/research/fire/southern_rockies.html
-# Fire Ignition Model vesion 2.0 included used Monitoring Trends Burn Severity data from 1984-1-1 through 2021-12-31 (Note Version FI model 1.0 used MTBS data through 2015-12-31.
-
+# Fire Ignition Model version 2.0 included used Monitoring Trends Burn Severity data from 1984-1-1 through 2021-12-31 (Note Version FI model 1.0 used MTBS data through 2015-12-31.
+# 20230828 - Updated to allow for Dynamic Gridmet Station processing.  Address depricated append to concat usage.  Addressed bug in DateTime field name if already exists.
 #Dependicies:
-#Python Version 3.9, Pandas, urllib
+#Python Version 3.10, Pandas, urllib
 
 #Script Name: FireIgnitionPotentialNowCastSummarize.py
-#Created by Kirk Sherrill - Data Manager Rock Mountian Network - I&M National Park Service
+#Created by Kirk Sherrill - Data Manager Rock Mountain Network - I&M National Park Service
 #Date: June 29, 2022
 
 ##Import Libraries
@@ -40,11 +40,14 @@ today = date.today()
 strDate = today.strftime("%Y%m%d")
 strCurYear = today.strftime("%Y")
 
-#Define URL with the Gridmet data - 'strCurYear' is dynamically being used to define the current Year
-serviceURL = "http://www.climateanalyzer.science/python/wb2.py?csv_output=true&station=flfograss1_from_grid&title=FLFOGRID&pet_type=hamon&max_soil_water=250&graph_table=table&table_type=daily&forgiving=very&year1=1980&year2=" + strCurYear + "&station_type=GHCN&sim_snow=true&force=true?"
+inFieldFieldNowCast = 'D (MM)'  #Field in the Now Cast data being used in the fire ignition potential model (this will be the deficit field).
 
-inFieldFieldNowCast = 'D (MM)'  #Field in the Now Cast data being used in the fire iginition pototential model (this will be the deficit field).
-siteName = 'FLFOGrass_1'  #Site Identifier - should be dynamic - not really necessary
+siteName = 'bearlake_from_grid'  #Site Identifier for Gridmet Station
+
+#Define URL with the Gridmet data in Climate Analyzer
+siteNameNoFromGrid = siteName.replace("_from_grid","")   #SiteName with the 'from_grid' removed
+serviceURL = "http://www.climateanalyzer.science/python/wb2.py?csv_output=true&station=" + siteName + "&title=" + siteNameNoFromGrid + "&pet_type=hamon&max_soil_water=250&graph_table=table&table_type=daily&forgiving=very&year1=1980&year2=" + strCurYear + "&station_type=GHCN&sim_snow=true&force=true?"
+
 
 #Define the Historic/Current reference parameters:
 refYearStartDate= '1/1/1984'   #Start Year/Date for which Fire Ignition Model was evaluated (Jan 1 of Start Year)
@@ -53,14 +56,11 @@ refYearEndDate = '12/31/2021'       #End Year/Date for which Fire Ignition Model
 
 web = 'False'  #'True'|'False' - Parameter defining output to web (i.e. location of script) or defined output directory.
 #Output Directory/LogFile Information
-outputFolder = "C:\ROMN\GIS\FLFO\LandscapeAnalysis\FireIgnition\Python\\SummarizeFLFO\\" + strDate #Folder for the output Data Package Products - if Web = 'True' will be ignored
-
+outputFolder = "C:\ROMN\Climate\ClimateAnalyzer\Dashboards\ROMO\GridMetStations\\bearlake_from_grid\\" + strDate #Folder for the output Data Package Products - if Web = 'True' will be ignored
 
 workspace = outputFolder + "\\workspace"
 outName = 'FireIgnitionNowCastwSummary'   #Output .csv filename
 logFileName = workspace + "\\" + outName + ".LogFile.txt"
-
-
 
 #logFileName = outName + ".LogFile.txt"
 
@@ -69,7 +69,7 @@ nonforest_start_DOY = 79  #Non-Forested Start of Fire Year Day Number
 nonforest_end_DOY = 303   #Non-Forested End of Fire Year Day Number
 forest_start_DOY = 7      #Forest Start of Fire year Day Number
 forest_end_DOY = 301      #Forest End of Fire year Day Number
-movingWindowsDay = 7     #Number of days in the moving window average (default use 14)
+movingWindowsDay = 14     #Number of days in the moving window average (default use 14)
 #######################################
 ## Below are paths which are hard coded
 #######################################
@@ -197,7 +197,7 @@ def main():
         #Loop For NonForest
         for year in rangeList:
             #Run for Singular Years Start Year Thru End Year
-            outFun = summarizeFireDangerRating(dfwIgnitionGrass, 'SiteName', 'FLFO', 'PercNonForest', year, year, 'Non-Forest', 'Mean', 'Year', 'na', 'DATE', 'no')
+            outFun = summarizeFireDangerRating(dfwIgnitionGrass, 'SiteName', siteName, 'PercNonForest', year, year, 'Non-Forest', 'Mean', 'Year', 'na', 'DATE', 'no')
             if outFun[0] != "Success Function":
                 print("WARNING - Function summarizeFireDangerRating failed - Exiting Script")
                 exit()
@@ -210,7 +210,7 @@ def main():
         #Loop for Forest
         for year in rangeList:
             #Run for Singular Years Start Year Thru End Year
-            outFun = summarizeFireDangerRating(dfwIgnition, 'SiteName', 'FLFO', 'PercForest', year, year, 'Forest', 'Mean', 'Year', 'na', 'DATE', 'no')
+            outFun = summarizeFireDangerRating(dfwIgnition, 'SiteName', siteName, 'PercForest', year, year, 'Forest', 'Mean', 'Year', 'na', 'DATE', 'no')
             if outFun[0] != "Success Function":
                 print("WARNING - Function summarizeFireDangerRating failed - Exiting Script")
                 exit()
@@ -239,7 +239,7 @@ def main():
 
         #Summarize the nowcast data - Forest
         # Run for Singular Years Start Year Thru End Year
-        outFun = summarizeFireDangerRating(dfwIgnitionForestNowCast, 'SiteName', 'FLFO', 'PercForest', 'NowCast', 'NowCast', 'Forest','Mean', 'Year', 'na', 'DATE', 'yes')
+        outFun = summarizeFireDangerRating(dfwIgnitionForestNowCast, 'SiteName', siteName, 'PercForest', 'NowCast', 'NowCast', 'Forest','Mean', 'Year', 'na', 'DATE', 'yes')
         if outFun[0] != "Success Function":
             print("WARNING - Function summarizeFireDangerRating failed Forested Vegetation Now Cast- Exiting Script")
             exit()
@@ -261,7 +261,7 @@ def main():
 
         # Summarize the nowcast data - Forest
         # Run for Singular Years Start Year Thru End Year
-        outFun = summarizeFireDangerRating(dfwIgnitionNonForestNowCast, 'SiteName', 'FLFO', 'PercNonForest', 'NowCast', 'NowCast', 'Non-Forest', 'Mean', 'Year', 'na', 'DATE', 'yes')
+        outFun = summarizeFireDangerRating(dfwIgnitionNonForestNowCast, 'SiteName', siteName, 'PercNonForest', 'NowCast', 'NowCast', 'Non-Forest', 'Mean', 'Year', 'na', 'DATE', 'yes')
         if outFun[0] != "Success Function":
             print("WARNING - Function summarizeFireDangerRating failed Non Forest Vegetation Now Cast- Exiting Script")
             exit()
@@ -284,7 +284,7 @@ def main():
             dfallFiles = outFun[1]
 
             messageTime = timeFun()
-            scriptMsg = "Success - Processing appended last Four Year Summaries - " + messageTime
+            scriptMsg = "Success - Processing appended last 25 Year Summaries - " + messageTime
             print(scriptMsg)
             logFile = open(logFileName, "a")
             logFile.write(scriptMsg + "\n")
@@ -304,7 +304,7 @@ def main():
         dfallFiles.to_csv(outFull, index=False)
 
 
-        scriptMsg = "Successfully processed Now Cast Data - Single Years and Now Casst: " + outFull + " - " + messageTime
+        scriptMsg = "Successfully processed Now Cast Data - Single Years and Now Cast: " + outFull + " - " + messageTime
         print(scriptMsg)
         logFile = open(logFileName, "a")
         logFile.write(scriptMsg + "\n")
@@ -464,8 +464,11 @@ def summarizeFireDangerRating(inDf, inFileFieldAOA, inAOAWildcard, inFieldPerc, 
             #outDataTimeDef = statistic + "_" + timeStep + "_" + str(startYear) + "_" + str(endYear)
             outDataTimeDef = str(startYear) + "_" + str(endYear)
 
-            #Add the DateTime Field
-            dfNormals.insert(loc=0, column='DateTime', value=outDataTimeDef)
+            if 'DateTime' in dfNormals.columns:  # Added 8/28/2023 KRS
+                dfNormals['DateTime'] = outDataTimeDef
+
+            else:  # Add the DateTime Field
+                dfNormals.insert(loc=0, column='DateTime', value=outDataTimeDef)
 
             # Add Cover Type
             dfNormals.insert(loc=0, column='CoverType', value=coverType)
@@ -520,8 +523,8 @@ def appendFiles(appendList):
             # Append dfLoop to dfallFiles
             else:
 
-                dfallFiles = dfallFiles.append(dfLoop, ignore_index=True, verify_integrity=True)
-
+                #dfallFiles = dfallFiles.append(dfLoop, ignore_index=True, verify_integrity=True) #Append is depricated
+                dfallFiles = pd.concat([dfallFiles, dfLoop], axis=0, ignore_index=True, verify_integrity=True)
             del dfLoop
 
         return "Success function", dfallFiles
