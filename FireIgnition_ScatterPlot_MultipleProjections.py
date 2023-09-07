@@ -14,6 +14,11 @@
 #   Added Jitter to Future Model Graphs
 #   Cleaned up legend, title, label definitions
 #   Added Z order for graphed content to allow shaded futures box
+# Update 20230830:
+# Note Package Pillow 10.0 was having issues with the error 'LL load failed while importing _imaging: The specified module could not be found'.  Downgraded Pillow to 9.0 seems to have address the issue.
+# Update 20230906:
+# Added functionality to process one cover type 'Forest' or 'Non-Forest' as defined via the coverType variable. Note Historic Futures Summaries output must have processed the desired covertype as
+# output from the 'FireIgnition_SummaryNormals.py' routine and as defined in the 'dfSummaries' variable.
 
 #Dependicies:
 #Python Version 3.9, Numpy, matplotlib, numpy
@@ -23,14 +28,15 @@
 #Date: June 30, 2022
 
 ##Import Libraries
+import traceback, sys
 import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.ticker as tck
+#import matplotlib.ticker as tck
 
-import datetime
+#import datetime
 from datetime import date
 import random
 import os
@@ -47,17 +53,19 @@ strCurrentDate = str(today)  #Date with Dashes
 ###################################################
 #Output Folder
 
-web = 'True'  #'True'|'False' - Parameter defining output to web (i.e. location of script) or defined output directory.
+web = 'False'  #'True'|'False' - Parameter defining output to web (i.e. location of script) or defined output directory.
 if web == 'False':
-    outFolder = "C:\\ROMN\\GIS\\FLFO\\LandscapeAnalysis\\FireIgnition\\Python\\SummarizeFLFO\\" + strDate  #Folder for the output Data Package Products - if Web = 'True' will be ignored
+    outFolder = "C:\\ROMN\\Climate\\ClimateAnalyzer\\Dashboards\\ROMO\\GridMetStations\\lostlake_from_grid\\toMikeT"  ##Folder for the output Data Products - Also has the input tables
     #Workspace
-    workspace = "C:\\ROMN\\GIS\\FLFO\\LandscapeAnalysis\\FireIgnition\\Python\\SummarizeFLFO\\" + strDate + "\\workspace"   #workspace
+    workspace = "C:\\ROMN\\Climate\\ClimateAnalyzer\\Dashboards\\ROMO\\GridMetStations\\lostlake_from_grid\\toMikeT\\workspace"   #workspace
 else:
-    output_folder = './'
+    outputFolder = './'
     workspace = './'
 
 #workspace = ""
 #Output Names to Scatter Plots
+coverType = 'Non-Forest'   #(Forest|Non-Forest) Which type of Fire Ignition Cover Type to Process
+
 outNameForest = 'FireDangerHigh_ForestRescaled'
 outNameGrass = 'FireDangerHigh_NonForestRescaled'
 
@@ -66,14 +74,14 @@ logFileName = workspace + "FireIgnitionScatterPlots_" + ".LogFile.txt"
 
 if web == 'False':
     #Import Dataset Summary of Normals (i.e. Historic Normals, and Projections) - This dataset should be static is output from FireIgnition_SummaryNormals.py
-    dfSummaries = pd.read_csv(outFolder + "\FLFO_FireDangerSummary_HistCurrentFutures_Normals" + strDate + ".csv")
+    dfSummaries = pd.read_csv(outFolder + "\\lostlake_FireDangerSummary_HistCurrentFutures_Normals20230816.csv")
     # Import Dataset with GridMet Station Now Cast summary and GridMet Station Singular year summaries - Output from Dailys Gridmet Station Pulls - script 'FireIgnitionPotentialNowCastSummarize.py
-    dfGridMetNowCast = pd.read_csv(outFolder + "\FireIgnitionNowCastwSummary_" + strDateDash + ".csv")
+    dfGridMetNowCast = pd.read_csv(outFolder + "\\FireIgnitionNowCastwSummary.csv")
 else:
     # Import Dataset Summary of Normals (i.e. Historic Normals, and Projections) - This dataset should be static is output from FireIgnition_SummaryNormals.py
-    dfSummaries = pd.read_csv(outFolder + "\FLFO_FireDangerSummary_HistCurrentFutures_Normals.csv")
+    dfSummaries = pd.read_csv(outFolder + "\\lostlake_FireDangerSummary_HistCurrentFutures_Normals20230816.csv")
     # Import Dataset with GridMet Station Now Cast summary and GridMet Station Singular year summaries - Output from Dailys Gridmet Station Pulls - script 'FireIgnitionPotentialNowCastSummarize.py
-    dfGridMetNowCast = pd.read_csv(outFolder + "\FireIgnitionNowCastwSummary.csv")
+    dfGridMetNowCast = pd.read_csv(outFolder + "\\FireIgnitionNowCastwSummary.csv")
 
 
 
@@ -137,320 +145,359 @@ def main():
         # Make plotYear Numeric
         dfSummaries['plotYear'] = pd.to_numeric(dfSummaries['plotYear'], errors='coerce')
 
-        ##############################
-        # Get Max Year Info - Forest
-        dfHistoricForestTemp = dfGridMetNowCast.loc[(dfGridMetNowCast['CoverType'] == 'Forest')]
 
-        # Find Max Year - Forest
-        maxHighForest = dfHistoricForestTemp['High_Mean'].max()
+        if coverType.lower() == 'forest':
 
-        # Subset Df to the max year Record
-        indexDf = dfHistoricForestTemp.loc[dfHistoricForestTemp['High_Mean'] == maxHighForest]
+            ##############################
+            # Get Max Year Info - Forest
+            dfHistoricForestTemp = dfGridMetNowCast.loc[(dfGridMetNowCast['CoverType'] == 'Forest')]
 
-        # Extract the Max Year
-        maxYearForest = int(indexDf['Year'].to_string(index=False))
-        del (dfHistoricForestTemp)
+            # Find Max Year - Forest
+            maxHighForest = dfHistoricForestTemp['High_Mean'].max()
 
-        ###############################################
-        # Create List of Years to be processed - Forest
-        rangeListForest = [*range(startYear, endYear + 1)]
-        # Add Max Year Forest
-        rangeListForest.insert(0, maxYearForest)
+            # Subset Df to the max year Record
+            indexDf = dfHistoricForestTemp.loc[dfHistoricForestTemp['High_Mean'] == maxHighForest]
 
-        # Forest
-        # Loop of year's to be processed add the expected Syntax for the 'DateTime' field designation ofthe year range (i.e year_year)
-        yearListForest = []
-        xSeriesTicsForest = []  # List for Graph Tics
-        xSeriesLabelForest = []  # Labels List
-        for year in rangeListForest:
-            yearListForest.append(str(year) + "_" + str(year))
-            xSeriesTicsForest.append(year)
-            xSeriesLabelForest.append(year)
+            #Add logic to select the First/Oldest Max Year if More than one year
+            indexDfShape = indexDf.shape
+            numRows = indexDfShape[0]
 
-        # Add Projection Label Info x Tic marks and Labels
-        xSeriesTicsForest.append(plotYearNowCast)
-        xSeriesTicsForest.append(plotYear2031_2060)
-        xSeriesTicsForest.append(plotYear2061_2090)
-        xSeriesLabelForest.append(strDate)
-        xSeriesLabelForest.append('2031-2060')
-        xSeriesLabelForest.append('2061-2090')
+            if numRows == 1:  #Single Max Year
 
-        # Define the minus 1 start Year to be used for the Max High Year
-        startYearMinusOne = startYear - 1
+                #Extract the Max Year
+                maxYearForest = int(indexDf['Year'].to_string(index=False))
 
-        # Replace Year value for the Max High Year with the 'startYearMinusOne'
-        xSeriesTicsForest[0] = startYearMinusOne
+            else:  #Select the Firest/Oldest Max year (i.e last record) when more then one year
+                maxYearForest = indexDf.iloc[0]['Year']
 
-        ##############################
-        # Get Max Year Info - NonForest
-        dfHistoricNonForestTemp = dfGridMetNowCast.loc[(dfGridMetNowCast['CoverType'] == 'Non-Forest')]
+            del (dfHistoricForestTemp)
 
-        # Find Max Year - Forest
-        maxHighNonForest = dfHistoricNonForestTemp['High_Mean'].max()
+            ###############################################
+            # Create List of Years to be processed - Forest
+            rangeListForest = [*range(startYear, endYear + 1)]
+            # Add Max Year Forest
+            rangeListForest.insert(0, maxYearForest)
 
-        # Subset Df to the max year Record
-        indexDf = dfHistoricNonForestTemp.loc[dfHistoricNonForestTemp['High_Mean'] == maxHighNonForest]
+            # Forest
+            # Loop of year's to be processed add the expected Syntax for the 'DateTime' field designation ofthe year range (i.e year_year)
+            yearListForest = []
+            xSeriesTicsForest = []  # List for Graph Tics
+            xSeriesLabelForest = []  # Labels List
+            for year in rangeListForest:
+                yearListForest.append(str(year) + "_" + str(year))
+                xSeriesTicsForest.append(year)
+                xSeriesLabelForest.append(year)
 
-        # Extract the Max Year
-        maxYearNonForest = int(indexDf['Year'].to_string(index=False))
-        del (dfHistoricNonForestTemp)
+            # Add Projection Label Info x Tic marks and Labels
+            xSeriesTicsForest.append(plotYearNowCast)
+            xSeriesTicsForest.append(plotYear2031_2060)
+            xSeriesTicsForest.append(plotYear2061_2090)
+            xSeriesLabelForest.append(strDate)
+            xSeriesLabelForest.append('2031-2060')
+            xSeriesLabelForest.append('2061-2090')
 
-        ###############################################
-        # Create List of Years to be processed - NonForest
-        rangeListNonForest = [*range(startYear, endYear + 1)]
-        # Add Max Year Forest
-        rangeListNonForest.insert(0, maxYearNonForest)
+            # Define the minus 1 start Year to be used for the Max High Year
+            startYearMinusOne = startYear - 1
 
-        # Forest
-        # Loop of year's to be processed add the expected Syntax for the 'DateTime' field designation ofthe year range (i.e year_year)
-        yearListNonForest = []
-        xSeriesTicsNonForest = []  # List for Graph Tics
-        xSeriesLabelNonForest = []  # Labels List
-        for year in rangeListNonForest:
-            yearListNonForest.append(str(year) + "_" + str(year))
-            xSeriesTicsNonForest.append(year)
-            xSeriesLabelNonForest.append(year)
+            # Replace Year value for the Max High Year with the 'startYearMinusOne'
+            xSeriesTicsForest[0] = startYearMinusOne
 
-        # Add Projection Label Info x Tic marks and Labels
-        xSeriesTicsNonForest.append(plotYearNowCast)
-        xSeriesTicsNonForest.append(plotYear2031_2060)
-        xSeriesTicsNonForest.append(plotYear2061_2090)
-        xSeriesLabelNonForest.append(strDate)
-        xSeriesLabelNonForest.append('2031-2060')
-        xSeriesLabelNonForest.append('2061-2090')
+        if coverType.lower() == 'non-forest':
 
-        # Define the minus 1 start Year to be used for the Max High Year
-        startYearMinusOne = startYear - 1
+            ##############################
+            # Get Max Year Info - NonForest
+            dfHistoricNonForestTemp = dfGridMetNowCast.loc[(dfGridMetNowCast['CoverType'] == 'Non-Forest')]
 
-        # Replace Year value for the Max High Year with the 'startYearMinusOne'
-        xSeriesTicsNonForest[0] = startYearMinusOne
+            # Find Max Year - Forest
+            maxHighNonForest = dfHistoricNonForestTemp['High_Mean'].max()
+
+            # Subset Df to the max year Record
+            indexDf = dfHistoricNonForestTemp.loc[dfHistoricNonForestTemp['High_Mean'] == maxHighNonForest]
+
+            # Add logic to select the First/Oldest Max Year if More than one year
+            indexDfShape = indexDf.shape
+            numRows = indexDfShape[0]
+
+            if numRows == 1:  # Single Max Year
+                # Extract the Max Year
+                maxYearNonForest = int(indexDf['Year'].to_string(index=False))
+
+            else:  # Select the First/Oldest Max year (i.e last record) when more then one year
+                maxYearNonForest = indexDf.iloc[0]['Year']
+            del (dfHistoricNonForestTemp)
+
+
+            ###############################################
+            # Create List of Years to be processed - NonForest
+            rangeListNonForest = [*range(startYear, endYear + 1)]
+            # Add Max Year NonForest
+            rangeListNonForest.insert(0, maxYearNonForest)
+
+            #NonForest
+            #Loop of year's to be processed add the expected Syntax for the 'DateTime' field designation ofthe year range (i.e year_year)
+            yearListNonForest = []
+            xSeriesTicsNonForest = []  # List for Graph Tics
+            xSeriesLabelNonForest = []  # Labels List
+            for year in rangeListNonForest:
+                yearListNonForest.append(str(year) + "_" + str(year))
+                xSeriesTicsNonForest.append(year)
+                xSeriesLabelNonForest.append(year)
+
+             #Add Projection Label Info x Tic marks and Labels
+            xSeriesTicsNonForest.append(plotYearNowCast)
+            xSeriesTicsNonForest.append(plotYear2031_2060)
+            xSeriesTicsNonForest.append(plotYear2061_2090)
+            xSeriesLabelNonForest.append(strDate)
+            xSeriesLabelNonForest.append('2031-2060')
+            xSeriesLabelNonForest.append('2061-2090')
+
+            # Define the minus 1 start Year to be used for the Max High Year
+            startYearMinusOne = startYear - 1
+
+            # Replace Year value for the Max High Year with the 'startYearMinusOne'
+            xSeriesTicsNonForest[0] = startYearMinusOne
 
         ###################################################
         # Subset last four year singular summaries - Gridmet
-        dfHistoricForest = dfGridMetNowCast.loc[
-            (dfGridMetNowCast['DateTime'].isin(yearListForest)) & (dfGridMetNowCast['CoverType'] == 'Forest')]
-        dfHistoricNonForest = dfGridMetNowCast.loc[
-            (dfGridMetNowCast['DateTime'].isin(yearListNonForest)) & (dfGridMetNowCast['CoverType'] == 'Non-Forest')]
+        if coverType.lower() == 'forest':
+            dfHistoricForest = dfGridMetNowCast.loc[
+                (dfGridMetNowCast['DateTime'].isin(yearListForest)) & (dfGridMetNowCast['CoverType'] == 'Forest')]
+        if coverType.lower() == 'non-forest':
+            dfHistoricNonForest = dfGridMetNowCast.loc[
+                (dfGridMetNowCast['DateTime'].isin(yearListNonForest)) & (dfGridMetNowCast['CoverType'] == 'Non-Forest')]
 
         ########
         # Get Now Cast By Cover Type
-        dfNowCastForest = dfGridMetNowCast.loc[
-            (dfGridMetNowCast['NowCastCount'] >= 0) & (dfGridMetNowCast['CoverType'] == 'Forest')]
-        dfNowCastNonForest = dfGridMetNowCast.loc[
-            (dfGridMetNowCast['NowCastCount'] >= 0) & (dfGridMetNowCast['CoverType'] == 'Non-Forest')]
+        if coverType.lower() == 'forest':
+            dfNowCastForest = dfGridMetNowCast.loc[
+                (dfGridMetNowCast['NowCastCount'] >= 0) & (dfGridMetNowCast['CoverType'] == 'Forest')]
 
-        ############################################
-        # Create Datasets to be used in plot -Forest Projections
-        ############################################
-        dfForest_RCP45 = dfSummaries.loc[(dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'rcp45') & (
-                    dfSummaries['GCM'] != 'Ensemble')]
-        dfForest_RCP85 = dfSummaries.loc[(dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'rcp85') & (
-                    dfSummaries['GCM'] != 'Ensemble')]
-        dfForest_RCP45_Ensemble = dfSummaries.loc[
-            (dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'rcp45') & (
-                        dfSummaries['GCM'] == 'Ensemble')]
-        dfForest_RCP85_Ensemble = dfSummaries.loc[
-            (dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'rcp85') & (
-                        dfSummaries['GCM'] == 'Ensemble')]
-        dfForest_1991_2020 = dfSummaries.loc[(dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'na')]
+        if coverType.lower() == 'non-forest':
+            dfNowCastNonForest = dfGridMetNowCast.loc[
+                (dfGridMetNowCast['NowCastCount'] >= 0) & (dfGridMetNowCast['CoverType'] == 'Non-Forest')]
 
-        # Define Jitter fields for Projections
-        dfForest_RCP45['plotYearJitter'] = dfForest_RCP45['plotYear'].apply(lambda x: jitter(x))
-        dfForest_RCP85['plotYearJitter'] = dfForest_RCP85['plotYear'].apply(lambda x: jitter(x))
 
-        ############################################
-        # Create Datasets to be used in plot -Non Forest Projections
-        ############################################
-        dfNonForest_RCP45 = dfSummaries.loc[
-            (dfSummaries['CoverType'] == 'Non-Forest') & (dfSummaries['RCP'] == 'rcp45') & (
+        if coverType.lower() == 'forest':
+            ############################################
+            # Create Datasets to be used in plot -Forest Projections
+            ############################################
+            dfForest_RCP45 = dfSummaries.loc[(dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'rcp45') & (
                         dfSummaries['GCM'] != 'Ensemble')]
-        dfNonForest_RCP85 = dfSummaries.loc[
-            (dfSummaries['CoverType'] == 'Non-Forest') & (dfSummaries['RCP'] == 'rcp85') & (
+            dfForest_RCP85 = dfSummaries.loc[(dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'rcp85') & (
                         dfSummaries['GCM'] != 'Ensemble')]
-        dfNonForest_RCP45_Ensemble = dfSummaries.loc[
-            (dfSummaries['CoverType'] == 'Non-Forest') & (dfSummaries['RCP'] == 'rcp45') & (
-                        dfSummaries['GCM'] == 'Ensemble')]
-        dfNonForest_RCP85_Ensemble = dfSummaries.loc[
-            (dfSummaries['CoverType'] == 'Non-Forest') & (dfSummaries['RCP'] == 'rcp85') & (
-                        dfSummaries['GCM'] == 'Ensemble')]
-        dfNonForest_1991_2020 = dfSummaries.loc[
-            (dfSummaries['CoverType'] == 'Non-Forest') & (dfSummaries['RCP'] == 'na')]
+            dfForest_RCP45_Ensemble = dfSummaries.loc[
+                (dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'rcp45') & (
+                            dfSummaries['GCM'] == 'Ensemble')]
+            dfForest_RCP85_Ensemble = dfSummaries.loc[
+                (dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'rcp85') & (
+                            dfSummaries['GCM'] == 'Ensemble')]
+            dfForest_1991_2020 = dfSummaries.loc[(dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'na')]
 
-        # Define Jitter fields for Projections
-        dfNonForest_RCP45['plotYearJitter'] = dfNonForest_RCP45['plotYear'].apply(lambda x: jitter(x))
-        dfNonForest_RCP85['plotYearJitter'] = dfNonForest_RCP85['plotYear'].apply(lambda x: jitter(x))
+            # Define Jitter fields for Projections
+            dfForest_RCP45['plotYearJitter'] = dfForest_RCP45['plotYear'].apply(lambda x: jitter(x))
+            dfForest_RCP85['plotYearJitter'] = dfForest_RCP85['plotYear'].apply(lambda x: jitter(x))
+
+        if coverType.lower() == 'non-forest':
+            ############################################
+            # Create Datasets to be used in plot -Non Forest Projections
+            ############################################
+            dfNonForest_RCP45 = dfSummaries.loc[
+                (dfSummaries['CoverType'] == 'Non-Forest') & (dfSummaries['RCP'] == 'rcp45') & (
+                            dfSummaries['GCM'] != 'Ensemble')]
+            dfNonForest_RCP85 = dfSummaries.loc[
+                (dfSummaries['CoverType'] == 'Non-Forest') & (dfSummaries['RCP'] == 'rcp85') & (
+                            dfSummaries['GCM'] != 'Ensemble')]
+            dfNonForest_RCP45_Ensemble = dfSummaries.loc[
+                (dfSummaries['CoverType'] == 'Non-Forest') & (dfSummaries['RCP'] == 'rcp45') & (
+                            dfSummaries['GCM'] == 'Ensemble')]
+            dfNonForest_RCP85_Ensemble = dfSummaries.loc[
+                (dfSummaries['CoverType'] == 'Non-Forest') & (dfSummaries['RCP'] == 'rcp85') & (
+                            dfSummaries['GCM'] == 'Ensemble')]
+            dfNonForest_1991_2020 = dfSummaries.loc[
+                (dfSummaries['CoverType'] == 'Non-Forest') & (dfSummaries['RCP'] == 'na')]
+
+            # Define Jitter fields for Projections
+            dfNonForest_RCP45['plotYearJitter'] = dfNonForest_RCP45['plotYear'].apply(lambda x: jitter(x))
+            dfNonForest_RCP85['plotYearJitter'] = dfNonForest_RCP85['plotYear'].apply(lambda x: jitter(x))
 
         # Get Number of Now Cast Days
-        nowCastDays = dfNowCastNonForest['NowCastCount'].iloc[0]
-        nowCastDaysStr = "Short Term Forecast (" + str(int(nowCastDays)) + " days)"
+        if coverType.lower() == 'non-forest':
+            nowCastDays = dfNowCastNonForest['NowCastCount'].iloc[0]
+            nowCastDaysStr = "Short Term Forecast (" + str(int(nowCastDays)) + " days)"
+
+        if coverType.lower() == 'forest':
+            nowCastDays = dfNowCastForest['NowCastCount'].iloc[0]
+            nowCastDaysStr = "Short Term Forecast (" + str(int(nowCastDays)) + " days)"
 
         ######################################################################
         # Forest Scatter Plot with High Count Year in last 25 added - KRS 20220802
         ######################################################################
 
-        # Define the MaxYear DataFrame
-        dfHistoricForestMax = dfHistoricForest.loc[(dfHistoricForest['Year'] == maxYearForest)]
+        if coverType.lower() == 'forest':
+            # Define the MaxYear DataFrame
+            dfHistoricForestMax = dfHistoricForest.loc[(dfHistoricForest['Year'] == maxYearForest)]
 
-        # Assign Desired Year value to facilitate x axis mapping
-        dfHistoricForestMax['Year'] = np.where((dfHistoricForestMax['Year'] == maxYearForest), startYearMinusOne,
-                                               dfHistoricForestMax['Year'])
+            # Assign Desired Year value to facilitate x axis mapping
+            dfHistoricForestMax['Year'] = np.where((dfHistoricForestMax['Year'] == maxYearForest), startYearMinusOne,
+                                                   dfHistoricForestMax['Year'])
 
-        # Drop Max Year from 'dfHistoricForest' dataframe
-        dfHistoricForest = dfHistoricForest[1:]
+            # Drop Max Year from 'dfHistoricForest' dataframe
+            dfHistoricForest = dfHistoricForest[1:]
 
-        ax = dfHistoricForestMax.plot(kind='scatter', x='Year', y='High_Mean',  color='Black', marker = "^",
-                                      label='High Annual Count Last 25 Years', zorder=10)
-        dfHistoricForest.plot(kind='scatter', x='Year', y='High_Mean', color='Black',
-                              label='Annual Count in Past Years', ax=ax, zorder=9)
-        dfNowCastForest.plot(kind='scatter', x='Year', y='High_Mean', color='Orange', label=nowCastDaysStr, ax=ax, zorder=8)
+            ax = dfHistoricForestMax.plot(kind='scatter', x='Year', y='High_Mean',  color='Black', marker = "^",
+                                          label='High Annual Count Last 25 Years', zorder=10)
+            dfHistoricForest.plot(kind='scatter', x='Year', y='High_Mean', color='Black',
+                                  label='Annual Count in Past Years', ax=ax, zorder=9)
+            dfNowCastForest.plot(kind='scatter', x='Year', y='High_Mean', color='Orange', label=nowCastDaysStr, ax=ax, zorder=8)
 
-        # Get X axis min value - Futures
-        xlow = dfForest_RCP45['plotYearJitter'].min()
+            # Get X axis min value - Futures
+            xlow = dfForest_RCP45['plotYearJitter'].min()
 
-        #Get X axis max value - Futures
-        xlim = dfForest_RCP85['plotYearJitter'].max()
+            #Get X axis max value - Futures
+            xlim = dfForest_RCP85['plotYearJitter'].max()
 
-        # Add Shading for the Futures area
-        ax.axvspan(xmin=xlow - 0.2, xmax=xlim + 0.2, ymin=0, linewidth=8, color='lightskyblue', zorder=0)
+            # Add Shading for the Futures area
+            ax.axvspan(xmin=xlow - 0.2, xmax=xlim + 0.2, ymin=0, linewidth=8, color='lightskyblue', zorder=0)
 
 
-        # First Dataset RCP 4.5 - No Ensemble
-        # dfForest_RCP45.plot(kind='scatter', x='plotYear', y='High_Mean', color='Blue', label='Low Emission Model Predictions (RCP4.5)', ax=ax);
-        dfForest_RCP45.plot(kind='scatter', x='plotYearJitter', y='High_Mean', color='Blue',
-                            label='Low Emission Model Predictions (RCP4.5)', ax=ax, zorder=7)
+            # First Dataset RCP 4.5 - No Ensemble
+            # dfForest_RCP45.plot(kind='scatter', x='plotYear', y='High_Mean', color='Blue', label='Low Emission Model Predictions (RCP4.5)', ax=ax);
+            dfForest_RCP45.plot(kind='scatter', x='plotYearJitter', y='High_Mean', color='Blue',
+                                label='Low Emission Model Predictions (RCP4.5)', ax=ax, zorder=7)
 
-        # Add Second Dataset RCP 8.5 - No Ensemble
-        # dfForest_RCP85.plot(kind='scatter', x='plotYear', y='High_Mean', color='Red', label='High Emission Model Predictions (RCP8.5)', ax=ax)
-        dfForest_RCP85.plot(kind='scatter', x='plotYearJitter', y='High_Mean', color='Red',
-                            label='High Emission Model Predictions (RCP8.5)', ax=ax, zorder=6)
+            # Add Second Dataset RCP 8.5 - No Ensemble
+            # dfForest_RCP85.plot(kind='scatter', x='plotYear', y='High_Mean', color='Red', label='High Emission Model Predictions (RCP8.5)', ax=ax)
+            dfForest_RCP85.plot(kind='scatter', x='plotYearJitter', y='High_Mean', color='Red',
+                                label='High Emission Model Predictions (RCP8.5)', ax=ax, zorder=6)
 
-        # Third Dataset RCP 4.5 - Ensemble
-        dfForest_RCP45_Ensemble.plot(kind='scatter', x='plotYear', y='High_Mean', color='Blue',
-                                     label='Low Emission Models Mean', s=150, ax=ax, zorder=11);
+            # Third Dataset RCP 4.5 - Ensemble
+            dfForest_RCP45_Ensemble.plot(kind='scatter', x='plotYear', y='High_Mean', color='Blue',
+                                         label='Low Emission Models Mean', s=150, ax=ax, zorder=11);
 
-        # Fourth Dataset RCP 8.5 - Ensemble
-        dfForest_RCP85_Ensemble.plot(kind='scatter', x='plotYear', y='High_Mean', color='Red',
-                                     label='High Emission Model Mean', s=150, ax=ax, zorder=12);
+            # Fourth Dataset RCP 8.5 - Ensemble
+            dfForest_RCP85_Ensemble.plot(kind='scatter', x='plotYear', y='High_Mean', color='Red',
+                                         label='High Emission Model Mean', s=150, ax=ax, zorder=12);
 
-        plt.xticks(xSeriesTicsForest, xSeriesLabelForest)
-        plt.ylabel("Number of Days")
-        # plt.xlabel("Year - Current Date Now Cast")
-        plt.xlabel("Year - Current Date - Futures\n\n\
-        Number of days annually with a High Fire Danger Ignition Potential rating for forested landcover:\n\
-         at time steps: highest annual count last 25 years, historic mean (1991-2020), last four years, \n\
-        short term forecasts (30-60 days future) and climate future predictions (2031-2060, and 2061-2090) \n\
-        across 11 Global Circulation Models (GCM) and ensemble means across all GCMs by Representative \n\
-        Concentration Pathways (RCP) carbon scenarios 4.5 (low emissions) and 8.5 (high emissions).")
+            plt.xticks(xSeriesTicsForest, xSeriesLabelForest)
+            plt.ylabel("Number of Days")
+            # plt.xlabel("Year - Current Date Now Cast")
+            plt.xlabel("Year - Current Date - Futures\n\n\
+            Number of days annually with a High Fire Danger Ignition Potential rating for forested landcover:\n\
+             at time steps: highest annual count last 25 years, historic mean (1991-2020), last four years, \n\
+            short term forecasts (30-60 days future) and climate future predictions (2031-2060, and 2061-2090) \n\
+            across 11 Global Circulation Models (GCM) and ensemble means across all GCMs by Representative \n\
+            Concentration Pathways (RCP) carbon scenarios 4.5 (low emissions) and 8.5 (high emissions).")
 
-        # Define the 1991-2020 Normal Value - From Grid Met Station
-        normal1991_2020 = dfForest_1991_2020['High_Mean']
-        # Make float
-        normal1991_20120lt = float(normal1991_2020)
+            # Define the 1991-2020 Normal Value - From Grid Met Station
+            normal1991_2020 = dfForest_1991_2020['High_Mean']
+            # Make float
+            normal1991_20120lt = float(normal1991_2020)
 
-        # Add Dataset 1990-2019 Normal value
-        # ax.axhline(y=normal1991_20120lt, color='Black', xmin=0, xmax=0.6, label='Normal 1991-2020')  #With item in Legend
-        ax.axhline(y=normal1991_20120lt, color='Black', xmin=0, xmax=0.6, zorder=13)
+            # Add Dataset 1990-2019 Normal value
+            # ax.axhline(y=normal1991_20120lt, color='Black', xmin=0, xmax=0.6, label='Normal 1991-2020')  #With item in Legend
+            ax.axhline(y=normal1991_20120lt, color='Black', xmin=0, xmax=0.6, zorder=13)
 
-        # Define location for Normal Label Placement - New
-        curYearPlus1 = dfHistoricForest['Year'].iat[0] + 0.25
+            # Define location for Normal Label Placement - New
+            curYearPlus1 = dfHistoricForest['Year'].iat[0] + 0.25
 
-        # Add Normals Line Text - New
-        ax.text(curYearPlus1, normal1991_20120lt + 1, 'Historic Mean 1991-2020', color='Black', rotation=360)
+            # Add Normals Line Text - New
+            ax.text(curYearPlus1, normal1991_20120lt + 1, 'Historic Mean 1991-2020', color='Black', rotation=360)
 
-        plt.legend(loc='upper right', fontsize = 'small', borderaxespad=0.2, facecolor ="white", framealpha = 1.0)
-        plt.title("High Fire Danger - Forest")
+            plt.legend(loc='upper right', fontsize = 'small', borderaxespad=0.2, facecolor ="white", framealpha = 1.0)
+            plt.title("High Fire Danger - Forest")
 
-        today = date.today()
-        strDate = today.strftime("%Y-%m-%d")
-        # Define the Figure Size
-        figure = plt.gcf()
-        figure.set_size_inches(10, 7.5)
-        plt.savefig(outNameForest + ".jpg", dpi=100, bbox_inches='tight')
-        del (figure)
+            today = date.today()
+            strDate = today.strftime("%Y-%m-%d")
+            # Define the Figure Size
+            figure = plt.gcf()
+            figure.set_size_inches(10, 7.5)
+            plt.savefig(outNameForest + ".jpg", dpi=100, bbox_inches='tight')
+            del (figure)
 
         ######################################################################
         # NonForest Scatter Plot with High Count Year in last 25 added - KRS 20220802
         ######################################################################
 
-        # Define the MaxYear DataFrame
-        dfHistoricNonForestMax = dfHistoricNonForest.loc[(dfHistoricNonForest['Year'] == maxYearNonForest)]
+        if coverType.lower() == 'non-forest':
+            # Define the MaxYear DataFrame
+            dfHistoricNonForestMax = dfHistoricNonForest.loc[(dfHistoricNonForest['Year'] == maxYearNonForest)]
 
-        # Assign Desired Year value to facilitate x axis mapping
-        dfHistoricNonForestMax['Year'] = np.where((dfHistoricNonForestMax['Year'] == maxYearNonForest),
-                                                  startYearMinusOne, dfHistoricNonForestMax['Year'])
+            # Assign Desired Year value to facilitate x axis mapping
+            dfHistoricNonForestMax['Year'] = np.where((dfHistoricNonForestMax['Year'] == maxYearNonForest),
+                                                      startYearMinusOne, dfHistoricNonForestMax['Year'])
 
-        # Drop Max Year from 'dfHistoricNonForest' dataframe
-        dfHistoricNonForest = dfHistoricNonForest[1:]
+            # Drop Max Year from 'dfHistoricNonForest' dataframe
+            dfHistoricNonForest = dfHistoricNonForest[1:]
 
-        ax = dfHistoricNonForestMax.plot(kind='scatter', x='Year', y='High_Mean', color='Black', marker = "^",
-                                         label='High Annual Count Last 25 Years', zorder=10)
-        dfHistoricNonForest.plot(kind='scatter', x='Year', y='High_Mean', color='Black',
-                                 label='Annual Count Past Years', ax=ax)
-        dfNowCastNonForest.plot(kind='scatter', x='Year', y='High_Mean', color='Orange', label=nowCastDaysStr, ax=ax, zorder=9)
+            ax = dfHistoricNonForestMax.plot(kind='scatter', x='Year', y='High_Mean', color='Black', marker = "^",
+                                             label='High Annual Count Last 25 Years', zorder=10)
+            dfHistoricNonForest.plot(kind='scatter', x='Year', y='High_Mean', color='Black',
+                                     label='Annual Count Past Years', ax=ax)
+            dfNowCastNonForest.plot(kind='scatter', x='Year', y='High_Mean', color='Orange', label=nowCastDaysStr, ax=ax, zorder=9)
 
-        #Get X axis max value - Futures
-        xlow = dfNonForest_RCP45['plotYearJitter'].min()
+            #Get X axis max value - Futures
+            xlow = dfNonForest_RCP45['plotYearJitter'].min()
 
-        #Get X axis max value - Futures
-        xlim = dfNonForest_RCP85['plotYearJitter'].max()
+            #Get X axis max value - Futures
+            xlim = dfNonForest_RCP85['plotYearJitter'].max()
 
-        # Add Shading for the Futures area
-        ax.axvspan(xmin=xlow - 0.2, xmax=xlim + 0.2, ymin=0, linewidth=8, color='lightskyblue', zorder=0)
+            # Add Shading for the Futures area
+            ax.axvspan(xmin=xlow - 0.2, xmax=xlim + 0.2, ymin=0, linewidth=8, color='lightskyblue', zorder=0)
 
 
-        #First Dataset RCP 4.5 - No Ensemble
-        # dfNonForest_RCP45.plot(kind='scatter', x='plotYear', y='High_Mean', color='Blue', label='Low Emission Model Predictions (RCP4.5)', ax=ax);
-        dfNonForest_RCP45.plot(kind='scatter', x='plotYearJitter', y='High_Mean', color='Blue',
-                               label='Low Emission Model Predictions (RCP4.5)', ax=ax, zorder=7);
+            #First Dataset RCP 4.5 - No Ensemble
+            # dfNonForest_RCP45.plot(kind='scatter', x='plotYear', y='High_Mean', color='Blue', label='Low Emission Model Predictions (RCP4.5)', ax=ax);
+            dfNonForest_RCP45.plot(kind='scatter', x='plotYearJitter', y='High_Mean', color='Blue',
+                                   label='Low Emission Model Predictions (RCP4.5)', ax=ax, zorder=7);
 
-        # Add Second Dataset RCP 8.5 - No Ensemble
-        # dfNonForest_RCP85.plot(kind='scatter', x='plotYear', y='High_Mean', color='Red', label='High Emission Model Predictions (RCP8.5)', ax=ax)
-        dfNonForest_RCP85.plot(kind='scatter', x='plotYearJitter', y='High_Mean', color='Red',
-                               label='High Emission Model Predictions (RCP8.5)', ax=ax, zorder=6)
+            # Add Second Dataset RCP 8.5 - No Ensemble
+            # dfNonForest_RCP85.plot(kind='scatter', x='plotYear', y='High_Mean', color='Red', label='High Emission Model Predictions (RCP8.5)', ax=ax)
+            dfNonForest_RCP85.plot(kind='scatter', x='plotYearJitter', y='High_Mean', color='Red',
+                                   label='High Emission Model Predictions (RCP8.5)', ax=ax, zorder=6)
 
-        # Third Dataset RCP 4.5 - Ensemble
-        dfNonForest_RCP45_Ensemble.plot(kind='scatter', x='plotYear', y='High_Mean', color='Blue',
-                                        label='Low Emission Model Mean', s=150, ax=ax, zorder=11);
+            # Third Dataset RCP 4.5 - Ensemble
+            dfNonForest_RCP45_Ensemble.plot(kind='scatter', x='plotYear', y='High_Mean', color='Blue',
+                                            label='Low Emission Model Mean', s=150, ax=ax, zorder=11);
 
-        # Fourth Dataset RCP 8.5 - Ensemble
-        dfNonForest_RCP85_Ensemble.plot(kind='scatter', x='plotYear', y='High_Mean', color='Red',
-                                        label='High Emission Model Mean', s=150, ax=ax, zorder=12);
+            # Fourth Dataset RCP 8.5 - Ensemble
+            dfNonForest_RCP85_Ensemble.plot(kind='scatter', x='plotYear', y='High_Mean', color='Red',
+                                            label='High Emission Model Mean', s=150, ax=ax, zorder=12);
 
-        plt.xticks(xSeriesTicsNonForest, xSeriesLabelNonForest)
-        plt.ylabel("Number of Days")
-        # plt.xlabel("Year - Current Date Now Cast")
-        plt.xlabel("Year - Current Date - Futures\n\n\
-        Number of days annually with a High Fire Danger Ignition Potential rating for grassland and shrub\n\
-        landcover at time steps: highest annual count last 25 years, historic mean (1991-2020), last four years,\n\
-        short term forecasts (30-60 days future) and climate future predictions (2031-2060, and 2061-2090) \n\
-        across 11 Global Circulation Models (GCM) and ensemble means across all GCMs by Representative \n\
-        Concentration Pathways (RCP) carbon scenarios 4.5 (low emissions) and 8.5 (high emissions).")
+            plt.xticks(xSeriesTicsNonForest, xSeriesLabelNonForest)
+            plt.ylabel("Number of Days")
+            # plt.xlabel("Year - Current Date Now Cast")
+            plt.xlabel("Year - Current Date - Futures\n\n\
+            Number of days annually with a High Fire Danger Ignition Potential rating for grassland and shrub\n\
+            landcover at time steps: highest annual count last 25 years, historic mean (1991-2020), last four years,\n\
+            short term forecasts (30-60 days future) and climate future predictions (2031-2060, and 2061-2090) \n\
+            across 11 Global Circulation Models (GCM) and ensemble means across all GCMs by Representative \n\
+            Concentration Pathways (RCP) carbon scenarios 4.5 (low emissions) and 8.5 (high emissions).")
 
-        # Define the 1991-2020 Normal Value - From Grid Met Station
-        normal1991_2020 = dfNonForest_1991_2020['High_Mean']
-        # Make float
-        normal1991_20120lt = float(normal1991_2020)
+            # Define the 1991-2020 Normal Value - From Grid Met Station
+            normal1991_2020 = dfNonForest_1991_2020['High_Mean']
+            # Make float
+            normal1991_20120lt = float(normal1991_2020)
 
-        # Add Dataset 1990-2019 Normal value
-        # ax.axhline(y=normal1991_20120lt, color='Black', xmin=0, xmax=0.6, label='Normal 1991-2020')  #With item in Legend
-        ax.axhline(y=normal1991_20120lt, color='Black', xmin=0, xmax=0.6, zorder=13)
+            # Add Dataset 1990-2019 Normal value
+            # ax.axhline(y=normal1991_20120lt, color='Black', xmin=0, xmax=0.6, label='Normal 1991-2020')  #With item in Legend
+            ax.axhline(y=normal1991_20120lt, color='Black', xmin=0, xmax=0.6, zorder=13)
 
-        # Define location for Normal Label Placement - New
-        curYearPlus1 = dfHistoricNonForest['Year'].iat[0] + 0.25
+            # Define location for Normal Label Placement - New
+            curYearPlus1 = dfHistoricNonForest['Year'].iat[0] + 0.25
 
-        # Add Normals Line Text - New
-        ax.text(curYearPlus1, normal1991_20120lt + 1, 'Historic Mean 1991-2020', color='Black', rotation=360)
+            # Add Normals Line Text - New
+            ax.text(curYearPlus1, normal1991_20120lt + 1, 'Historic Mean 1991-2020', color='Black', rotation=360)
 
-        plt.legend(loc='upper right', fontsize = 'small', borderaxespad=0.2, facecolor ="white", framealpha = 1.0)
-        plt.title("High Fire Danger - Grassland and Shrub")
+            plt.legend(loc='upper right', fontsize = 'small', borderaxespad=0.2, facecolor ="white", framealpha = 1.0)
+            plt.title("High Fire Danger - Grassland and Shrub")
 
-        today = date.today()
-        strDate = today.strftime("%Y-%m-%d")
-        # Define the Figure Size
-        figure = plt.gcf()
-        figure.set_size_inches(10, 7.5)
-        plt.savefig(outNameGrass + ".jpg", dpi=100, bbox_inches='tight')
-        del (figure)
+            today = date.today()
+            strDate = today.strftime("%Y-%m-%d")
+            # Define the Figure Size
+            figure = plt.gcf()
+            figure.set_size_inches(10, 7.5)
+            plt.savefig(outNameGrass + ".jpg", dpi=100, bbox_inches='tight')
+            del (figure)
 
         messageTime = timeFun()
         scriptMsg = "Successfully processed Fire Ignition Scatter Plots: " + outFolder + " - " + messageTime
@@ -466,7 +513,6 @@ def main():
         print (scriptMsg)
         logFile = open(logFileName, "a")
         logFile.write(scriptMsg + "\n")
-
         traceback.print_exc(file=sys.stdout)
         logFile.close()
 
