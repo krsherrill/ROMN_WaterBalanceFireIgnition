@@ -9,7 +9,7 @@
 #1) Scatter Plot Figures with Fire Danger High for Forest Cover and Fire Danger High for Non-Forest Cover by Historic Normal, Last Four Year Singular, Now Cast, and Future Projection Data
 
 #Verion Updates:
-#Version 2.0 20220802
+#Updates 20220802:
 #   Added to scatter plots the Yearly value with the Most High Fire Ignition Potential Days as havested from the pervious 25 years
 #   Added Jitter to Future Model Graphs
 #   Cleaned up legend, title, label definitions
@@ -19,9 +19,11 @@
 # Update 20230906:
 # Added functionality to process one cover type 'Forest' or 'Non-Forest' as defined via the coverType variable. Note Historic Futures Summaries output must have processed the desired covertype as
 # output from the 'FireIgnition_SummaryNormals.py' routine and as defined in the 'dfSummaries' variable.
+# Update 20230911:
+# Added 'plotLegLoc' variable to be used for plot legend placement.
 
 #Dependicies:
-#Python Version 3.9, Numpy, matplotlib, numpy
+#Python Version 3.x, Numpy, matplotlib, numpy
 
 #Script Name: FireIgnition_ScatterPlot_MultipleProjections
 #Created by Kirk Sherrill - Data Manager Rock Mountain Network - I&M National Park Service
@@ -39,7 +41,7 @@ import matplotlib.pyplot as plt
 #import datetime
 from datetime import date
 import random
-import os
+import os, sys, traceback
 
 #os.chdir('/var/www/html/ca_backend/python/sherrill')
 
@@ -51,35 +53,34 @@ strCurrentDate = str(today)  #Date with Dashes
 ###################################################
 # Start of Parameters requiring set up.
 ###################################################
-#Output Folder
+plotLegLoc = 'upper center'   #Variable defines legend placement ('upper right'|'upper left'|'upper center'|'etc')  See - https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html# for additonal options
 
+#Output Folder
 web = 'False'  #'True'|'False' - Parameter defining output to web (i.e. location of script) or defined output directory.
 if web == 'False':
-    outFolder = "C:\\ROMN\\Climate\\ClimateAnalyzer\\Dashboards\\ROMO\\GridMetStations\\lostlake_from_grid\\toMikeT"  ##Folder for the output Data Products - Also has the input tables
+    outFolder = "C:\\ROMN\\Climate\\ClimateAnalyzer\\Dashboards\\ROMO\\GridMetStations\\bearlake_from_grid\\toMikeT"  ##Folder for the output Data Products - Also has the input tables
     #Workspace
-    workspace = "C:\\ROMN\\Climate\\ClimateAnalyzer\\Dashboards\\ROMO\\GridMetStations\\lostlake_from_grid\\toMikeT\\workspace"   #workspace
+    workspace = "C:\\ROMN\\Climate\\ClimateAnalyzer\\Dashboards\\ROMO\\GridMetStations\\bearlake_from_grid\\toMikeT\\workspace"   #workspace
 else:
     outputFolder = './'
     workspace = './'
 
-#workspace = ""
 #Output Names to Scatter Plots
-coverType = 'Non-Forest'   #(Forest|Non-Forest) Which type of Fire Ignition Cover Type to Process
+coverType = 'Forest'   #(Forest|Non-Forest) Which type of Fire Ignition Cover Type to Process
 
-outNameForest = 'FireDangerHigh_ForestRescaled'
-outNameGrass = 'FireDangerHigh_NonForestRescaled'
+outNameForest = 'FireDangerHigh_ForestRescaled_bearlake_from_grid'
+outNameGrass = 'FireDangerHigh_NonForestRescaled_bearlake_from_grid'
 
 logFileName = workspace + "FireIgnitionScatterPlots_" + ".LogFile.txt"
 
-
 if web == 'False':
     #Import Dataset Summary of Normals (i.e. Historic Normals, and Projections) - This dataset should be static is output from FireIgnition_SummaryNormals.py
-    dfSummaries = pd.read_csv(outFolder + "\\lostlake_FireDangerSummary_HistCurrentFutures_Normals20230816.csv")
+    dfSummaries = pd.read_csv(outFolder + "\\bear_lake_FireDangerSummary_HistCurrentFutures_Normals20230907.csv")
     # Import Dataset with GridMet Station Now Cast summary and GridMet Station Singular year summaries - Output from Dailys Gridmet Station Pulls - script 'FireIgnitionPotentialNowCastSummarize.py
     dfGridMetNowCast = pd.read_csv(outFolder + "\\FireIgnitionNowCastwSummary.csv")
 else:
     # Import Dataset Summary of Normals (i.e. Historic Normals, and Projections) - This dataset should be static is output from FireIgnition_SummaryNormals.py
-    dfSummaries = pd.read_csv(outFolder + "\\lostlake_FireDangerSummary_HistCurrentFutures_Normals20230816.csv")
+    dfSummaries = pd.read_csv(outFolder + "\\bear_lake_FireDangerSummary_HistCurrentFutures_Normals20230907.csv")
     # Import Dataset with GridMet Station Now Cast summary and GridMet Station Singular year summaries - Output from Dailys Gridmet Station Pulls - script 'FireIgnitionPotentialNowCastSummarize.py
     dfGridMetNowCast = pd.read_csv(outFolder + "\\FireIgnitionNowCastwSummary.csv")
 
@@ -116,8 +117,6 @@ else:
 def main():
 
     try:
-
-
         ############################################
         # Create Datasets Historic lat four years and additional Max Year - Forest
         ############################################
@@ -403,7 +402,7 @@ def main():
             # Add Normals Line Text - New
             ax.text(curYearPlus1, normal1991_20120lt + 1, 'Historic Mean 1991-2020', color='Black', rotation=360)
 
-            plt.legend(loc='upper right', fontsize = 'small', borderaxespad=0.2, facecolor ="white", framealpha = 1.0)
+            plt.legend(loc= plotLegLoc.lower(), fontsize = 'small', borderaxespad=0.2, facecolor ="white", framealpha = 1.0)
             plt.title("High Fire Danger - Forest")
 
             today = date.today()
@@ -488,7 +487,7 @@ def main():
             # Add Normals Line Text - New
             ax.text(curYearPlus1, normal1991_20120lt + 1, 'Historic Mean 1991-2020', color='Black', rotation=360)
 
-            plt.legend(loc='upper right', fontsize = 'small', borderaxespad=0.2, facecolor ="white", framealpha = 1.0)
+            plt.legend(loc = plotLegLoc.lower(), fontsize = 'small', borderaxespad=0.2, facecolor ="white", framealpha = 1.0)
             plt.title("High Fire Danger - Grassland and Shrub")
 
             today = date.today()
