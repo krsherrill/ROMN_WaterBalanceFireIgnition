@@ -281,9 +281,9 @@ def main():
             # Create Datasets to be used in plot -Forest Projections
             ############################################
             dfForest_RCP45 = dfSummaries.loc[(dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'rcp45') & (
-                        dfSummaries['GCM'] != 'Ensemble')]
+                        dfSummaries['GCM'] != 'Ensemble')].copy()
             dfForest_RCP85 = dfSummaries.loc[(dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'rcp85') & (
-                        dfSummaries['GCM'] != 'Ensemble')]
+                        dfSummaries['GCM'] != 'Ensemble')].copy()
             dfForest_RCP45_Ensemble = dfSummaries.loc[
                 (dfSummaries['CoverType'] == 'Forest') & (dfSummaries['RCP'] == 'rcp45') & (
                             dfSummaries['GCM'] == 'Ensemble')]
@@ -334,7 +334,7 @@ def main():
 
         if coverType.lower() == 'forest':
             # Define the MaxYear DataFrame
-            dfHistoricForestMax = dfHistoricForest.loc[(dfHistoricForest['Year'] == maxYearForest)]
+            dfHistoricForestMax = dfHistoricForest.loc[(dfHistoricForest['Year'] == maxYearForest)].copy()
 
             # Assign Desired Year value to facilitate x axis mapping
             dfHistoricForestMax['Year'] = np.where((dfHistoricForestMax['Year'] == maxYearForest), startYearMinusOne,
@@ -388,7 +388,7 @@ def main():
             Concentration Pathways (RCP) carbon scenarios 4.5 (low emissions) and 8.5 (high emissions).")
 
             # Define the 1991-2020 Normal Value - From Grid Met Station
-            normal1991_2020 = dfForest_1991_2020['High_Mean']
+            normal1991_2020 = dfForest_1991_2020['High_Mean'].iloc[0]
             # Make float
             normal1991_20120lt = float(normal1991_2020)
 
