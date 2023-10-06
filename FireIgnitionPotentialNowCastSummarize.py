@@ -375,7 +375,7 @@ def summarizeFireDangerRating(inDf, inFileFieldAOA, inAOAWildcard, inFieldPerc, 
             df2['EndDate'] = pd.to_datetime(df2['EndDate'], utc='None', errors='coerce')
 
             # Subset a second  time to the start and end date records
-            df3 = df2.loc[(df2['time'] >= df2['StartDate']) & (df2['time'] <= df2['EndDate'])]
+            df3 = df2.loc[(df2['time'] >= df2['StartDate']) & (df2['time'] <= df2['EndDate'])].copy()
 
         else: #processing NowCast dataframe
 
@@ -656,7 +656,7 @@ def processNowCast(serviceURL,siteName):
         indexValuePlus1 = indexSubSet[0] + 1
 
         # Subset Records to plus 60 only removing the monthly summaries Mike included in the rest pull - this will be retained for historical calculations
-        dfPlus60 = nowCastDf[0:indexValuePlus1]
+        dfPlus60 = nowCastDf[0:indexValuePlus1].copy()
 
         #Convert 'DATE' field to Date Time now that text values have been removed
         dfPlus60['DATE'] = pd.to_datetime(dfPlus60['DATE'], infer_datetime_format=True)
@@ -814,7 +814,7 @@ def subsetToNowCast(inDf):
         currentDatePlus60 = pd.to_datetime(currentDatePlus60, infer_datetime_format=True)
 
         # subset dataframe to >= currentDateTime and <= curerntDateTimePlus60
-        nowCastDfSubset = inDf[(inDf['DATE'] >= currentDate) & (inDf['DATE'] <= currentDatePlus60)]
+        nowCastDfSubset = inDf[(inDf['DATE'] >= currentDate) & (inDf['DATE'] <= currentDatePlus60)].copy()
 
         # Force Deficit Field to Numeric makeing all non Numeric a Pandas 'NAN'
         nowCastDfSubset['D (MM)'] = pd.to_numeric(nowCastDfSubset['D (MM)'], errors='coerce')
@@ -822,7 +822,7 @@ def subsetToNowCast(inDf):
         #Retain only records with Data
         nowCastDfSubset['IsNull'] = nowCastDfSubset['D (MM)'].isnull()
 
-        nowCastDfSubset2 = nowCastDfSubset.loc[(nowCastDfSubset['IsNull'] == False)]
+        nowCastDfSubset2 = nowCastDfSubset.loc[(nowCastDfSubset['IsNull'] == False)].copy()
 
         #Delete 'IsNull' field
         nowCastDfSubset2.drop(['IsNull'], axis=1, inplace=True)
